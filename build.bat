@@ -26,7 +26,7 @@ if %errorlevel%==0 (
     ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o
     if errorlevel 1 goto :error
 
-    python build_flat.py
+    python scripts\build_flat.py
     if errorlevel 1 goto :error
 
     copy /b build\bios_boot.bin + build\bios_kernel.bin build\sonionos_bios.img >nul
@@ -51,3 +51,5 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
+
