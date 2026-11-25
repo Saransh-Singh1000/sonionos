@@ -1,5 +1,9 @@
 #include <stdint.h>
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
 #include "bootinfo.h"
+#include "pat.h"
 #include "rick_data.h"
 
 static const uint8_t font5x7[95][5] = {
@@ -64,8 +68,27 @@ void draw_text(const char *s, int x, int y, uint32_t col, int scale) {
     while (*s) { draw_char(*s++, x, y, col, scale); x += 6 * scale; }
 }
 
+static int run_module1_tests(void) {
+    char buf[32];
+    strcpy(buf, "sonion");
+    strcat(buf, "OS");
+    if (strcmp(buf, "sonionOS") != 0) return 0;
+    if (strlen(buf) != 8) return 0;
+
+    memmove(buf + 2, buf, 6);
+    if (strncmp(buf, "sosonion", 8) != 0) return 0;
+
+    if (!isdigit('7') || tolower('Z') != 'z') return 0;
+    if (strcmp(strerror(ENOMEM), "Cannot allocate memory") != 0) return 0;
+
+    return 1;
+}
+
 void kernel_main(BootInfo *info) {
     g_info = info;
+    enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->height * info->pitch * 4);
+
+    int libc_m1_ok = run_module1_tests();
     int total_frames = sizeof(rick_frames) / sizeof(rick_frames[0]);
     int f = 0;
     InputState in;
@@ -82,6 +105,12 @@ void kernel_main(BootInfo *info) {
 
         for (int row = 0; row < 24; row++) {
             draw_text(rick_frames[f][row], start_x, start_y + row * 18, 0x0038BDF8, 2);
+        }
+
+        if (libc_m1_ok) {
+            draw_text("LIBC MODULE 1: [PASS] - POSIX STRERROR & STRING.H", 20, 15, 0x0022C55E, 2);
+        } else {
+            draw_text("LIBC MODULE 1: [FAIL]", 20, 15, 0x00EF4444, 2);
         }
 
         swap_buffers();

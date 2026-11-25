@@ -24,38 +24,35 @@ static inline void outb(uint16_t port, uint8_t val) {
     __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
 }
 
+static inline uint64_t rdtsc(void) {
+    uint32_t lo, hi;
+    __asm__ volatile ("rdtsc" : "=a"(lo), "=d"(hi));
+    return ((uint64_t)hi << 32) | lo;
+}
+
 static const char scancode_ascii[128] = {
     0,  27, '1','2','3','4','5','6','7','8','9','0','-','=','\b',
-    '\t','q','w','e','r','t','y','u','i','o','p','[',']','\r',
-    0,  'a','s','d','f','g','h','j','k','l',';','\'','`', 0,
+    '\t','q','w','e','r','t','y','u','i','o','p',0x5B,0x5D,'\r',
+    0,  'a','s','d','f','g','h','j','k','l',';','\'',0x60, 0,
     '\\','z','x','c','v','b','n','m',',','.','/', 0, '*', 0, ' '
 };
 
-static VesaModeInfo *g_vesa = 0;
-static uint32_t *virt_fb = (uint32_t *)0x2000000;
+static uint64_t tsc_ticks_per_ms = 2000000;
 
-void bios_flush_vesa(void) {
-    if (!g_vesa || !g_vesa->framebuffer) return;
-    uint8_t *hw = (uint8_t *)(uintptr_t)g_vesa->framebuffer;
-    uint32_t w = g_vesa->width, h = g_vesa->height, pitch = g_vesa->pitch;
-    if (g_vesa->bpp == 32) {
-        for (uint32_t y = 0; y < h; y++) {
-            uint32_t *dst = (uint32_t *)(hw + y * pitch);
-            uint32_t *src = virt_fb + y * w;
-            for (uint32_t x = 0; x < w; x++) dst[x] = src[x];
-        }
-    } else {
-        for (uint32_t y = 0; y < h; y++) {
-            uint8_t *row = hw + y * pitch;
-            uint32_t *src = virt_fb + y * w;
-            for (uint32_t x = 0; x < w; x++) {
-                uint32_t c = src[x];
-                row[x * 3 + 0] = (uint8_t)(c & 0xFF);
-                row[x * 3 + 1] = (uint8_t)((c >> 8) & 0xFF);
-                row[x * 3 + 2] = (uint8_t)((c >> 16) & 0xFF);
-            }
-        }
-    }
+static void calibrate_tsc(void) {
+    uint8_t gate = inb(0x61) & 0xFC;
+    outb(0x61, gate);
+    outb(0x43, 0xB0);
+    outb(0x42, 0x9C);
+    outb(0x42, 0x2E);
+    outb(0x61, gate | 1);
+
+    uint64_t t0 = rdtsc();
+    uint32_t guard = 0;
+    while (!(inb(0x61) & 0x20) && ++guard < 10000000);
+    uint64_t t1 = rdtsc();
+
+    if (guard < 10000000 && t1 > t0) tsc_ticks_per_ms = (t1 - t0) / 10;
 }
 
 void bios_poll_input(InputState *state) {
@@ -70,19 +67,14 @@ void bios_poll_input(InputState *state) {
             else if (data < 128) state->key_char = scancode_ascii[data];
         }
     }
-    state->mouse_x = 512;
-    state->mouse_y = 384;
+    state->mouse_x = 400;
+    state->mouse_y = 300;
 }
 
 void bios_sleep_ms(uint32_t ms) {
-    bios_flush_vesa();
-    // Exact 1.193182 MHz x86 PIT Channel 2 hardware timer (1193 ticks = 1.000 ms)
-    for (uint32_t i = 0; i < ms; i++) {
-        outb(0x61, (inb(0x61) & 0xFD) | 1);
-        outb(0x43, 0xB0);
-        outb(0x42, 0xA9);
-        outb(0x42, 0x04);
-        while (!(inb(0x61) & 0x20));
+    uint64_t target = rdtsc() + (uint64_t)ms * tsc_ticks_per_ms;
+    while (rdtsc() < target) {
+        __asm__ volatile ("pause");
     }
 }
 
@@ -99,16 +91,13 @@ void bios_shutdown(void) {
 
 __attribute__((section(".text.entry")))
 void bios_entry(VesaModeInfo *vesa) {
-    g_vesa = vesa;
-    uint32_t w = vesa->width ? vesa->width : 1024;
-    uint32_t h = vesa->height ? vesa->height : 768;
-    for (uint32_t i = 0; i < w * h; i++) virt_fb[i] = 0x00090D16;
+    calibrate_tsc();
 
     BootInfo info;
-    info.framebuffer = virt_fb;
-    info.width       = w;
-    info.height      = h;
-    info.pitch       = w;
+    info.framebuffer = (uint32_t *)(uintptr_t)vesa->framebuffer;
+    info.width       = vesa->width  ? vesa->width  : 800;
+    info.height      = vesa->height ? vesa->height : 600;
+    info.pitch       = vesa->pitch  ? (vesa->pitch / 4) : info.width;
     info.poll_input  = bios_poll_input;
     info.sleep_ms    = bios_sleep_ms;
     info.reboot      = bios_reboot;
@@ -117,4 +106,3 @@ void bios_entry(VesaModeInfo *vesa) {
     kernel_main(&info);
     while (1) __asm__("hlt");
 }
-

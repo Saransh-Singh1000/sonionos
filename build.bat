@@ -5,7 +5,7 @@ if not exist "build" mkdir "build"
 if not exist "disk\EFI\BOOT" mkdir "disk\EFI\BOOT"
 
 echo === [1/3] Compiling Shared Kernel and UEFI Target ===
-gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include boot\uefi\main.c kernel\kernel.c -o disk\EFI\BOOT\BOOTX64.EFI
+gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -nostdinc -isystem "C:/ProgramData/mingw64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.2.0/include" -Ikernel\include -Ikernel\include\libc boot\uefi\main.c kernel\kernel.c kernel\libc\string.c -o disk\EFI\BOOT\BOOTX64.EFI
 if errorlevel 1 goto :error
 
 echo === [2/3] Compiling Shared Kernel and Legacy BIOS Target ===
@@ -17,13 +17,16 @@ if %errorlevel%==0 (
     nasm -f win64 boot\bios\entry64.asm -o build\entry64.o
     if errorlevel 1 goto :error
 
-    gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -Ikernel\include -c boot\bios\bios_hal.c -o build\bios_hal.o
+    gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -nostdinc -isystem "C:/ProgramData/mingw64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.2.0/include" -Ikernel\include -Ikernel\include\libc -c boot\bios\bios_hal.c -o build\bios_hal.o
     if errorlevel 1 goto :error
 
-    gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -Ikernel\include -c kernel\kernel.c -o build\kernel.o
+    gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -nostdinc -isystem "C:/ProgramData/mingw64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.2.0/include" -Ikernel\include -Ikernel\include\libc -c kernel\kernel.c -o build\kernel.o
     if errorlevel 1 goto :error
 
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o
+    gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -nostdinc -isystem "C:/ProgramData/mingw64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.2.0/include" -Ikernel\include -Ikernel\include\libc -c kernel\libc\string.c -o build\string.o
+    if errorlevel 1 goto :error
+
+    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\string.o
     if errorlevel 1 goto :error
 
     python scripts\build_flat.py
@@ -51,5 +54,4 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
-
 
