@@ -1,0 +1,16 @@
+﻿# Build & Release Artifacts
+build/
+disk/
+*.o
+*.bin
+*.elf
+*.efi
+*.EFI
+*.img
+*.iso
+*.log
+
+# OS / Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
