@@ -1,6 +1,9 @@
 [bits 16]
 [org 0x7C00]
 
+jmp short start
+kernel_chunks: dw 8
+
 start:
     cli
     xor ax, ax
@@ -10,8 +13,7 @@ start:
     mov sp, 0x7C00
     mov [boot_drive], dl
 
-    ; Load 3 x 64 sectors (192 sectors = 96 KB) from LBA 1 into 0x10000..0x28000
-    mov cx, 3
+    mov cx, [kernel_chunks]
 .read_loop:
     push cx
     mov si, dap

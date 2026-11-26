@@ -25,3 +25,11 @@ for name, vaddr, raw_sz, raw_ptr in sections:
 
 open('build/bios_kernel.bin', 'wb').write(flat)
 print(f"[PACK] Built flat kernel ({len(flat)} bytes)")
+
+import os, struct
+ksize = os.path.getsize("build/bios_kernel.bin")
+chunks = max(1, (ksize + 32767) // 32768)
+with open("build/bios_boot.bin", "r+b") as bf:
+    bf.seek(2)
+    bf.write(struct.pack("<H", chunks))
+print(f"[PATCH] Bootloader configured for {chunks} x 32KB chunks ({chunks * 32} KB)")

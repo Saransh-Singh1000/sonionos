@@ -29,4 +29,6 @@ char  *strpbrk(const char *s, const char *accept);
 char  *strtok(char *str, const char *delim);
 char  *strerror(int errnum);
 
+int strcoll(const char *s1, const char *s2);
 #endif
+
