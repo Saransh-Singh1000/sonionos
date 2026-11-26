@@ -140,40 +140,4 @@ struct tm *gmtime(const time_t *timer) {
 
 struct tm *localtime(const time_t *timer) { return gmtime(timer); }
 
-char *asctime(const struct tm *tm) {
-    static const char *wname[7]  = { "Sun","Mon","Tue","Wed","Thu","Fri","Sat" };
-    static const char *mname[12] = { "Jan","Feb","Mar","Apr","May","Jun",
-                                       "Jul","Aug","Sep","Oct","Nov","Dec" };
-    static char buf[32];
-    if (!tm) return 0;
-    int w = (tm->tm_wday >= 0 && tm->tm_wday < 7) ? tm->tm_wday : 0;
-    int m = (tm->tm_mon >= 0 && tm->tm_mon < 12) ? tm->tm_mon : 0;
-    snprintf(buf, sizeof(buf), "%s %s %2d %02d:%02d:%02d %d\n",
-             wname[w], mname[m], tm->tm_mday,
-             tm->tm_hour, tm->tm_min, tm->tm_sec, tm->tm_year + 1900);
-    return buf;
-}
-
-char *ctime(const time_t *timer) { return asctime(localtime(timer)); }
-
-size_t strftime(char *s, size_t maxsize, const char *fmt, const struct tm *tm) {
-    if (!s || maxsize == 0 || !fmt || !tm) return 0;
-    size_t pos = 0;
-    while (*fmt && pos + 1 < maxsize) {
-        if (*fmt != '%') { s[pos++] = *fmt++; continue; }
-        fmt++;
-        char tmp[32]; tmp[0] = 0;
-        if (*fmt == 'Y') snprintf(tmp, sizeof(tmp), "%04d", tm->tm_year + 1900);
-        else if (*fmt == 'm') snprintf(tmp, sizeof(tmp), "%02d", tm->tm_mon + 1);
-        else if (*fmt == 'd') snprintf(tmp, sizeof(tmp), "%02d", tm->tm_mday);
-        else if (*fmt == 'H') snprintf(tmp, sizeof(tmp), "%02d", tm->tm_hour);
-        else if (*fmt == 'M') snprintf(tmp, sizeof(tmp), "%02d", tm->tm_min);
-        else if (*fmt == 'S') snprintf(tmp, sizeof(tmp), "%02d", tm->tm_sec);
-        else if (*fmt == '%') { tmp[0] = '%'; tmp[1] = 0; }
-        if (*fmt) fmt++;
-        for (int i = 0; tmp[i] && pos + 1 < maxsize; i++) s[pos++] = tmp[i];
-    }
-    s[pos] = 0;
-    return pos;
-}
 

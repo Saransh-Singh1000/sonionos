@@ -28,6 +28,9 @@ static const uint8_t cfont[95][5] = {
 
 static BootInfo *c_info = 0;
 static uint32_t *c_buf  = 0;
+static void (*c_flush)(void) = 0;
+void console_set_flush(void (*fn)(void)) { c_flush = fn; }
+void console_flush_now(void) { console_render(); if (c_flush) c_flush(); }
 static int c_scale = 2, c_cols = 80, c_rows = 25;
 static int cur_x = 0, cur_y = 0, dirty = 1;
 static uint32_t fg_col = 0x00E2E8F0, bg_col = 0x00090D16;
@@ -185,7 +188,10 @@ int console_getchar(int blocking) {
         c_info->poll_input(&in);
         if (in.key_char != 0) return (int)(unsigned char)in.key_char;
         if (in.scan_code == 0x17) return 27; // ESC
+        console_render(); if (c_flush) c_flush();
         if (blocking && c_info->sleep_ms) c_info->sleep_ms(10);
     } while (blocking);
     return -1;
 }
+
+

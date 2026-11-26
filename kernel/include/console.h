@@ -14,4 +14,8 @@ void console_puts(const char *s);
 void console_render(void);
 int  console_getchar(int blocking);
 
+void console_set_flush(void (*fn)(void));
+void console_flush_now(void);
 #endif
+
+

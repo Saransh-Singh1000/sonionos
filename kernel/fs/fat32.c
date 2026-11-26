@@ -85,6 +85,7 @@ static uint32_t fat_get_next(uint32_t clus) {
     uint32_t off = is_fat16 ? (clus * 2) : (clus * 4);
     if (block_read(fat_start_lba + (off / 512), 1, sec_buf) != 0) return 0x0FFFFFFF;
     if (is_fat16) {
+        /* Normalize FAT16 EOC (0xFFF8..0xFFFF) to 0x0FFFFFFF */
         uint16_t v = *(uint16_t *)(sec_buf + (off % 512));
         return (v >= 0xFFF8U) ? 0x0FFFFFFF : (uint32_t)v;
     }
@@ -99,6 +100,7 @@ static int fat_set_next(uint32_t clus, uint32_t val) {
         uint64_t lba = (uint64_t)fat_start_lba + (uint64_t)f * fat_sectors + rel_sec;
         if (block_read(lba, 1, sec_buf) != 0) return -1;
         if (is_fat16) {
+        /* Normalize FAT16 EOC (0xFFF8..0xFFFF) to 0x0FFFFFFF */
             uint16_t *p = (uint16_t *)(sec_buf + ent_off);
             *p = (val >= 0x0FFFFFF8U) ? 0xFFFFU : (uint16_t)val;
         } else {
@@ -493,13 +495,17 @@ Fat32File *fat32_open(const char *path, const char *mode) {
 }
 static uint32_t seek_to_cluster(Fat32File *f, uint32_t target_idx, int alloc_missing) {
     uint32_t c = f->first_cluster;
+    uint32_t start_idx = 0;
     if (c < 2) {
         if (!alloc_missing) return 0;
         c = fat_alloc_cluster();
         if (!c) return 0;
         f->first_cluster = c;
+    } else if (target_idx >= f->cur_cluster_idx && f->cur_cluster >= 2) {
+        c = f->cur_cluster;
+        start_idx = f->cur_cluster_idx;
     }
-    for (uint32_t idx = 0; idx < target_idx; idx++) {
+    for (uint32_t idx = start_idx; idx < target_idx; idx++) {
         uint32_t nxt = fat_get_next(c);
         if (nxt >= 0x0FFFFFF8U || nxt < 2) {
             if (!alloc_missing) return 0;
@@ -699,6 +705,11 @@ int fat32_readdir(Fat32Dir *dir, Fat32DirEntry *out) {
 void fat32_closedir(Fat32Dir *dir) {
     if (dir) dir->in_use = 0;
 }
+
+
+
+
+
 
 
 

@@ -1,4 +1,6 @@
 #include "panic.h"
+#include "arch/syscall.h"
+#include "arch/syscall.h"
 
 typedef struct __attribute__((packed)) {
     uint16_t offset_low;
@@ -131,6 +133,7 @@ void kernel_panic(const char *reason, const char *file, int line) {
 }
 
 __attribute__((used)) __attribute__((used)) void panic_exception_handler(ExceptionFrame *f) {
+    if ((f->cs & 3) == 3) { uint64_t cr2 = 0; __asm__ volatile ("mov %%cr2, %0" : "=r"(cr2)); ring3_fault_recover(f->int_no, f->rip, cr2); }
     __asm__ volatile ("cli");
     uint64_t cr2 = 0;
     __asm__ volatile ("mov %%cr2, %0" : "=r"(cr2));
@@ -241,6 +244,8 @@ void panic_init(BootInfo *info) {
     idtr.base  = (uint64_t)(uintptr_t)&idt[0];
     __asm__ volatile ("lidt %0" : : "m"(idtr));
 }
+
+
 
 
 

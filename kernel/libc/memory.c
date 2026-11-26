@@ -1,111 +1,83 @@
-#include "stdlib.h"
-#include "string.h"
-#include "errno.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 
-typedef struct BlockHeader {
+#define HEAP_SIZE (16 * 1024 * 1024)
+
+typedef struct BlockHdr {
     size_t size;
-    int    is_free;
-    struct BlockHeader *next;
-} BlockHeader;
+    int    free;
+    struct BlockHdr *next;
+} BlockHdr;
 
-#define HEADER_SIZE ((sizeof(BlockHeader) + 15) & ~(size_t)15)
+static uint8_t heap_buf[HEAP_SIZE] __attribute__((aligned(16)));
+static BlockHdr *heap_head = 0;
 
-static BlockHeader *heap_head = NULL;
-static size_t total_heap_size = 0;
-
-static inline size_t align16(size_t n) {
-    return (n + 15) & ~(size_t)15;
-}
-
-void mem_init(uintptr_t heap_start, size_t heap_size) {
-    uintptr_t aligned_start = (heap_start + 15) & ~(uintptr_t)15;
-    size_t lost = (size_t)(aligned_start - heap_start);
-    if (heap_size <= lost + HEADER_SIZE) return;
-
-    heap_head = (BlockHeader *)aligned_start;
-    heap_head->size = heap_size - lost - HEADER_SIZE;
-    heap_head->is_free = 1;
-    heap_head->next = NULL;
-    total_heap_size = heap_head->size;
+static void heap_init_once(void) {
+    if (heap_head) return;
+    heap_head = (BlockHdr *)heap_buf;
+    heap_head->size = HEAP_SIZE - sizeof(BlockHdr);
+    heap_head->free = 1;
+    heap_head->next = 0;
 }
 
 void *malloc(size_t size) {
-    if (size == 0 || !heap_head) return NULL;
-    size = align16(size);
+    if (size == 0) size = 16;
+    size = (size + 15ULL) & ~15ULL;
+    heap_init_once();
 
-    BlockHeader *curr = heap_head;
-    while (curr) {
-        if (curr->is_free && curr->size >= size) {
-            if (curr->size >= size + HEADER_SIZE + 32) {
-                BlockHeader *split = (BlockHeader *)((uint8_t *)curr + HEADER_SIZE + size);
-                split->size = curr->size - size - HEADER_SIZE;
-                split->is_free = 1;
-                split->next = curr->next;
-
-                curr->size = size;
-                curr->next = split;
+    BlockHdr *cur = heap_head;
+    while (cur) {
+        if (cur->free && cur->size >= size) {
+            if (cur->size >= size + sizeof(BlockHdr) + 32) {
+                BlockHdr *split = (BlockHdr *)((uint8_t *)(cur + 1) + size);
+                split->size = cur->size - size - sizeof(BlockHdr);
+                split->free = 1;
+                split->next = cur->next;
+                cur->size = size;
+                cur->next = split;
             }
-            curr->is_free = 0;
-            return (void *)((uint8_t *)curr + HEADER_SIZE);
+            cur->free = 0;
+            return (void *)(cur + 1);
         }
-        curr = curr->next;
+        cur = cur->next;
     }
-    errno = ENOMEM;
-    return NULL;
+    return 0;
 }
 
 void free(void *ptr) {
     if (!ptr) return;
-    BlockHeader *block = (BlockHeader *)((uint8_t *)ptr - HEADER_SIZE);
-    block->is_free = 1;
+    BlockHdr *hdr = ((BlockHdr *)ptr) - 1;
+    hdr->free = 1;
 
-    BlockHeader *curr = heap_head;
-    while (curr && curr->next) {
-        if (curr->is_free && curr->next->is_free) {
-            curr->size += HEADER_SIZE + curr->next->size;
-            curr->next = curr->next->next;
+    BlockHdr *cur = heap_head;
+    while (cur && cur->next) {
+        if (cur->free && cur->next->free) {
+            cur->size += sizeof(BlockHdr) + cur->next->size;
+            cur->next = cur->next->next;
         } else {
-            curr = curr->next;
+            cur = cur->next;
         }
     }
 }
 
-void *calloc(size_t num, size_t size) {
-    if (num != 0 && size > (size_t)-1 / num) {
-        errno = ENOMEM;
-        return NULL;
-    }
-    size_t total = num * size;
-    void *ptr = malloc(total);
-    if (ptr) memset(ptr, 0, total);
-    return ptr;
+void *calloc(size_t nmemb, size_t size) {
+    size_t total = nmemb * size;
+    void *p = malloc(total);
+    if (p) memset(p, 0, total);
+    return p;
 }
 
-void *realloc(void *ptr, size_t new_size) {
-    if (!ptr) return malloc(new_size);
-    if (new_size == 0) { free(ptr); return NULL; }
+void *realloc(void *ptr, size_t size) {
+    if (!ptr) return malloc(size);
+    if (size == 0) { free(ptr); return 0; }
 
-    BlockHeader *block = (BlockHeader *)((uint8_t *)ptr - HEADER_SIZE);
-    if (block->size >= new_size) return ptr;
+    BlockHdr *hdr = ((BlockHdr *)ptr) - 1;
+    if (hdr->size >= size) return ptr;
 
-    void *new_ptr = malloc(new_size);
-    if (new_ptr) {
-        memcpy(new_ptr, ptr, block->size);
-        free(ptr);
-    }
-    return new_ptr;
-}
-
-size_t mem_get_used(void) {
-    size_t used = 0;
-    BlockHeader *curr = heap_head;
-    while (curr) {
-        if (!curr->is_free) used += curr->size;
-        curr = curr->next;
-    }
-    return used;
-}
-
-size_t mem_get_free(void) {
-    return total_heap_size - mem_get_used();
+    void *np = malloc(size);
+    if (!np) return 0;
+    memcpy(np, ptr, hdr->size);
+    free(ptr);
+    return np;
 }

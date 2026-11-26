@@ -67,8 +67,9 @@ static void fmt_uint(FmtOut *o, uint64_t val, int base, int upper,
     if (flags & 1) fmt_pad(o, ' ', pad);
 }
 
-static void fmt_float(FmtOut *o, double val, int width, int prec, int flags) {
+static void fmt_float(FmtOut *o, double val, int width, int prec, int flags, int is_g) {
     if (prec < 0) prec = 6;
+    if (is_g && prec == 0) prec = 1;
     if (prec > 9) prec = 9;
     char sign_ch = 0;
     if (val < 0.0) { sign_ch = '-'; val = -val; }
@@ -102,13 +103,19 @@ static void fmt_float(FmtOut *o, double val, int width, int prec, int flags) {
     while (ilen > 0) fmt_putc(o, ibuf[--ilen]);
 
     if (prec > 0) {
-        fmt_putc(o, '.');
         char fbuf[16];
         for (int i = prec - 1; i >= 0; i--) {
             fbuf[i] = (char)('0' + (fpart % 10));
             fpart /= 10;
         }
-        for (int i = 0; i < prec; i++) fmt_putc(o, fbuf[i]);
+        int show = prec;
+        if (is_g && !(flags & 8)) {
+            while (show > 0 && fbuf[show - 1] == '0') show--;
+        }
+        if (show > 0) {
+            fmt_putc(o, '.');
+            for (int i = 0; i < show; i++) fmt_putc(o, fbuf[i]);
+        }
     }
     if (flags & 1) fmt_pad(o, ' ', pad);
 }
@@ -182,7 +189,7 @@ int vsnprintf(char *str, size_t size, const char *fmt, va_list ap) {
             if (flags & 1) fmt_pad(&o, ' ', pad);
         } else if (spec == 'f' || spec == 'F' || spec == 'g' || spec == 'G' || spec == 'e' || spec == 'E') {
             double dv = va_arg(ap, double);
-            fmt_float(&o, dv, width, prec, flags);
+            fmt_float(&o, dv, width, prec, flags, (spec == 'g' || spec == 'G'));
         } else if (spec == 'n') {
             int *np = va_arg(ap, int *);
             if (np) *np = (int)o.pos;
@@ -486,10 +493,36 @@ int fgetc(FILE *stream) {
         return c;
     }
     if (stream->kind == 0) {
-        int c = console_getchar(1);
-        if (c < 0) { stream->eof = 1; return EOF; }
-        console_putchar((char)c);
-        return c;
+        static char in_buf[512];
+        static int in_len = 0, in_pos = 0;
+        while (in_pos >= in_len) {
+            in_len = 0;
+            in_pos = 0;
+            while (1) {
+                int c = console_getchar(1);
+                if (c < 0) {
+                    if (in_len == 0) { stream->eof = 1; return EOF; }
+                    break;
+                }
+                if (c == '\r' || c == '\n') {
+                    console_putchar('\n');
+                    if (in_len < 511) in_buf[in_len++] = '\n';
+                    break;
+                }
+                if (c == '\b' || c == 127) {
+                    if (in_len > 0) {
+                        in_len--;
+                        console_putchar('\b');
+                    }
+                    continue;
+                }
+                if (c >= 32 && c <= 126 && in_len < 510) {
+                    in_buf[in_len++] = (char)c;
+                    console_putchar((char)c);
+                }
+            }
+        }
+        return (unsigned char)in_buf[in_pos++];
     }
     uint8_t b = 0;
     if (fat32_read(&b, 1, 1, (Fat32File *)stream->handle) != 1) {
@@ -590,4 +623,6 @@ void perror(const char *s) {
 
 
 char *tmpnam(char *s) { static char b[32]; static int n = 0; char *p = s ? s : b; snprintf(p, 32, "/TMP_%d.TMP", n++); return p; }
+
+
 

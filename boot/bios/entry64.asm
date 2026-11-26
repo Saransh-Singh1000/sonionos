@@ -67,7 +67,7 @@ lm64_ready:
     mov gs, ax
 
     ; Place 16-byte aligned stack safely at 0x1800000 (24 MB, well above .bss!)
-    mov rsp, 0x1800000
+    mov rsp, 0x007F8000
     mov rcx, 0x9000
     mov rdi, 0x9000
     mov rax, bios_entry
@@ -85,4 +85,5 @@ gdt64:
 gdt64_desc:
     dw gdt64_desc - gdt64 - 1
     dd gdt64
+
 
