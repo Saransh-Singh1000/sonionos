@@ -4,10 +4,10 @@ global _start32
 extern bios_entry
 
 _start32:
-    ; Zero out 9 MB of .bss RAM (0x20000 -> 0x920000) so backbuf & globals are clean
-    mov edi, 0x20000
+    ; Zero out 16 MB of .bss RAM (0x200000 -> 0x1200000) so backbuf & globals are 100% clean
+    mov edi, 0x200000
     xor eax, eax
-    mov ecx, 2359296
+    mov ecx, 2162688
     rep stosd
 
     ; Build 64-Bit Identity Page Tables at 0x1000 (maps first 4 GB)
@@ -66,8 +66,8 @@ lm64_ready:
     mov fs, ax
     mov gs, ax
 
-    ; Place 16-byte aligned stack safely at 0x9F0000 (above .bss!)
-    mov rsp, 0x9F0000
+    ; Place 16-byte aligned stack safely at 0x1800000 (24 MB, well above .bss!)
+    mov rsp, 0x1800000
     mov rcx, 0x9000
     mov rdi, 0x9000
     mov rax, bios_entry
