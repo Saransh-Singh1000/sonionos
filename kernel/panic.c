@@ -226,6 +226,12 @@ void panic_init(BootInfo *info) {
         isr_24, isr_25, isr_26, isr_27, isr_28, isr_29, isr_30, isr_31
     };
 
+        __asm__ volatile ("jmp 1f\n\t isr_ignore:\n\t iretq\n\t 1:\n\t");
+    extern void isr_ignore(void);
+    for (int i = 32; i < 256; i++) {
+        set_idt_gate(i, isr_ignore, cs);
+    }
+
     for (int i = 0; i < 32; i++) {
         set_idt_gate(i, handlers[i], cs);
     }
@@ -235,5 +241,6 @@ void panic_init(BootInfo *info) {
     idtr.base  = (uint64_t)(uintptr_t)&idt[0];
     __asm__ volatile ("lidt %0" : : "m"(idtr));
 }
+
 
 
