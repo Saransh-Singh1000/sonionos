@@ -35,7 +35,7 @@ if errorlevel 1 goto :error
 objcopy -O binary build\bench_r3.elf disk\USER\BENCH.BIN
 if errorlevel 1 goto :error
 
-set KSRCS=kernel\kernel.c kernel\panic.c kernel\console.c kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\time.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c
+set KSRCS=kernel\kernel.c kernel\gfx.c kernel\desktop.c kernel\panic.c kernel\console.c kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\time.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c
 
 echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===
 gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %KSRCS% -o disk\EFI\BOOT\BOOTX64.EFI
@@ -54,7 +54,7 @@ if %errorlevel%==0 (
         if errorlevel 1 goto :error
     )
 
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\panic.o build\console.o build\gdt.o build\paging.o build\syscall.o build\string.o build\memory.o build\setjmp.o build\time.o build\blockdev.o build\pci.o build\nvme.o build\ahci.o build\ata.o build\usb_msc.o build\fat32.o
+    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\gfx.o build\desktop.o build\panic.o build\console.o build\gdt.o build\paging.o build\syscall.o build\string.o build\memory.o build\setjmp.o build\time.o build\blockdev.o build\pci.o build\nvme.o build\ahci.o build\ata.o build\usb_msc.o build\fat32.o
     if errorlevel 1 goto :error
 
     python scripts\build_flat.py

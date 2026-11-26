@@ -1,4 +1,5 @@
 #include "console.h"
+#include "desktop.h"
 #include "string.h"
 
 #define MAX_ROWS 135
@@ -35,6 +36,9 @@ static int c_scale = 2, c_cols = 80, c_rows = 25;
 static int cur_x = 0, cur_y = 0, dirty = 1;
 static uint32_t fg_col = 0x00E2E8F0, bg_col = 0x00090D16;
 
+static int c_area_x = 16, c_area_y = 16;
+static int c_area_w = 0, c_area_h = 0;
+
 static char     grid_ch[MAX_ROWS][MAX_COLS];
 static uint32_t grid_fg[MAX_ROWS][MAX_COLS];
 
@@ -65,8 +69,15 @@ void console_init(BootInfo *info, uint32_t *backbuf, int scale) {
     c_info  = info;
     c_buf   = backbuf ? backbuf : info->framebuffer;
     c_scale = (scale > 0) ? scale : 2;
-    c_cols  = ((int)info->width - 32) / (6 * c_scale);
-    c_rows  = ((int)info->height - 32) / (9 * c_scale);
+
+    desktop_console_bounds(&c_area_x, &c_area_y,
+                           &c_area_w, &c_area_h);
+
+    c_cols = c_area_w / (6 * c_scale);
+    c_rows = c_area_h / (9 * c_scale);
+
+    if (c_cols < 1) c_cols = 1;
+    if (c_rows < 1) c_rows = 1;
     if (c_cols > MAX_COLS) c_cols = MAX_COLS;
     if (c_rows > MAX_ROWS) c_rows = MAX_ROWS;
     console_clear();
@@ -132,16 +143,35 @@ void console_puts(const char *s) {
 }
 
 void console_render(void) {
-    if (!c_info || !c_buf || !dirty) return;
+    if (!c_info || !c_buf) return;
+
+    if (!desktop_console_visible()) return;
+
+    /* Follow the window when it moves. */
+    desktop_console_bounds(&c_area_x, &c_area_y,
+                           &c_area_w, &c_area_h);
+
+    if (!dirty) return;
     dirty = 0;
 
-    uint64_t bg64 = ((uint64_t)bg_col << 32) | bg_col;
-    uint64_t *dst64 = (uint64_t *)c_buf;
-    uint32_t qwords = (c_info->height * c_info->pitch) / 2;
-    for (uint32_t i = 0; i < qwords; i++) dst64[i] = bg64;
+    /* Console is rendered inside the desktop window. */
+    int pad_x = c_area_x;
+    int pad_y = c_area_y;
+    int cw = 6 * c_scale;
+    int ch = 9 * c_scale;
 
-    int pad_x = 16, pad_y = 16;
-    int cw = 6 * c_scale, ch = 9 * c_scale;
+    /* Clear only the console content area. */
+    for (int y = 0; y < c_area_h; y++) {
+        int py = c_area_y + y;
+        if (py < 0 || py >= (int)c_info->height) continue;
+
+        for (int x = 0; x < c_area_w; x++) {
+            int px = c_area_x + x;
+            if (px < 0 || px >= (int)c_info->width) continue;
+
+            c_buf[py * c_info->pitch + px] = bg_col;
+        }
+    }
 
     for (int r = 0; r < c_rows; r++) {
         for (int c = 0; c < c_cols; c++) {
@@ -186,9 +216,21 @@ int console_getchar(int blocking) {
     InputState in;
     do {
         c_info->poll_input(&in);
-        if (in.key_char != 0) return (int)(unsigned char)in.key_char;
+
+        desktop_update(&in);
+
+        /* Desktop was redrawn, so redraw the complete text grid. */
+        dirty = 1;
+        console_render();
+
+        desktop_draw_cursor();
+
+        if (c_flush) c_flush();
+
+        if (in.key_char != 0)
+            return (int)(unsigned char)in.key_char;
+
         if (in.scan_code == 0x17) return 27; // ESC
-        console_render(); if (c_flush) c_flush();
         if (blocking && c_info->sleep_ms) c_info->sleep_ms(10);
     } while (blocking);
     return -1;
