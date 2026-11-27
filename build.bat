@@ -35,6 +35,13 @@ if errorlevel 1 goto :error
 objcopy -O binary build\bench_r3.elf disk\USER\BENCH.BIN
 if errorlevel 1 goto :error
 
+gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\meminfo_r3.c -o build\meminfo_r3.o
+if errorlevel 1 goto :error
+ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\meminfo_r3.elf build\meminfo_r3.o
+if errorlevel 1 goto :error
+objcopy -O binary build\meminfo_r3.elf disk\USER\MEMINFO.BIN
+if errorlevel 1 goto :error
+
 set KSRCS=kernel\kernel.c kernel\gfx.c kernel\desktop.c kernel\panic.c kernel\console.c kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\time.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c
 
 echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===
@@ -72,9 +79,9 @@ set QEMU="C:\Program Files\qemu\qemu-system-x86_64.exe"
 set BIOS_FD="C:\Program Files\qemu\share\edk2-x86_64-code.fd"
 
 if /i "%1"=="bios" (
-    %QEMU% -cpu max -m 256M -drive file=build\sonionos_bios.img,format=raw,if=ide,index=0 -drive file=fat:rw:disk,format=raw,if=ide,index=1 -serial stdio
+    %QEMU% -cpu max -m 256M -drive file=build\sonionos_bios.img,format=raw,if=ide,index=0 -drive file=fat:rw:disk,format=raw,if=ide,index=1 -display sdl,grab-mod=lctrl-lalt -serial none
 ) else (
-    %QEMU% -cpu max -m 256M -drive if=pflash,format=raw,readonly=on,file=%BIOS_FD% -drive file=fat:rw:disk,format=raw -device qemu-xhci -device usb-mouse -serial stdio
+    %QEMU% -cpu max -m 256M -drive if=pflash,format=raw,readonly=on,file=%BIOS_FD% -drive file=fat:rw:disk,format=raw -display sdl,grab-mod=lctrl-lalt -serial none
 )
 goto :eof
 
@@ -82,6 +89,12 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
+
+
+
+
+
 
 
 

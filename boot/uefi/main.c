@@ -12,30 +12,93 @@ typedef struct _EFI_SIMPLE_POINTER_PROTOCOL { EFI_STATUS (*Reset)(struct _EFI_SI
 typedef struct { uint32_t Version, HorizontalResolution, VerticalResolution, PixelFormat, PixelInformation[4], PixelsPerScanLine; } EFI_GRAPHICS_OUTPUT_MODE_INFORMATION;
 typedef struct { uint32_t MaxMode, Mode; EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info; UINTN SizeOfInfo; uint64_t FrameBufferBase; UINTN FrameBufferSize; } EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE;
 typedef struct _EFI_GRAPHICS_OUTPUT_PROTOCOL { void* QueryMode; void* SetMode; void* Blt; EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode; } EFI_GRAPHICS_OUTPUT_PROTOCOL;
-typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10,*f11,*f12,*f13,*f14,*f15,*f16,*f17,*f18,*f19,*f20,*f21,*f22,*f23,*f24,*f25,*f26,*f27,*f28; EFI_STATUS (*Stall)(UINTN Microseconds); void *f30,*f31,*f32,*f33,*f34,*f35,*f36,*f37; EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface); } EFI_BOOT_SERVICES;
+typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10,*f11,*f12,*f13,*f14,*f15,*f16,*f17; EFI_STATUS (*HandleProtocol)(EFI_HANDLE H, EFI_GUID *P, void **I); void *f19,*f20,*f21,*f22,*f23,*f24,*f25,*f26,*f27,*f28; EFI_STATUS (*Stall)(UINTN Microseconds); void *f30; EFI_STATUS (*ConnectController)(EFI_HANDLE C, EFI_HANDLE *D, void *R, uint8_t Rec); void *f32,*f33,*f34,*f35; EFI_STATUS (*LocateHandleBuffer)(UINTN T, EFI_GUID *P, void *K, UINTN *N, EFI_HANDLE **B); void *f37; EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface); } EFI_BOOT_SERVICES;
 typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10; void (*ResetSystem)(int ResetType, EFI_STATUS ResetStatus, UINTN DataSize, void *ResetData); } EFI_RUNTIME_SERVICES;
 typedef struct { EFI_TABLE_HEADER Hdr; CHAR16 *FirmwareVendor; uint32_t FirmwareRevision; EFI_HANDLE ConsoleInHandle; EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn; EFI_HANDLE ConsoleOutHandle; void* ConOut; EFI_HANDLE StandardErrorHandle; void* StdErr; EFI_RUNTIME_SERVICES *RuntimeServices; EFI_BOOT_SERVICES *BootServices; } EFI_SYSTEM_TABLE;
 
 static EFI_SYSTEM_TABLE *g_st = 0;
-static EFI_SIMPLE_POINTER_PROTOCOL *g_mouse = 0;
+static EFI_SIMPLE_POINTER_PROTOCOL *g_mice[8];
+static int g_num_mice = 0;
+
+typedef struct { uint64_t CurrentX, CurrentY, CurrentZ; uint32_t ActiveButtons; } EFI_ABSOLUTE_POINTER_STATE;
+typedef struct { uint64_t AbsoluteMinX, AbsoluteMinY, AbsoluteMinZ, AbsoluteMaxX, AbsoluteMaxY, AbsoluteMaxZ, Attributes; } EFI_ABSOLUTE_POINTER_MODE;
+typedef struct _EFI_ABSOLUTE_POINTER_PROTOCOL { EFI_STATUS (*Reset)(struct _EFI_ABSOLUTE_POINTER_PROTOCOL *This, uint8_t Ext); EFI_STATUS (*GetState)(struct _EFI_ABSOLUTE_POINTER_PROTOCOL *This, EFI_ABSOLUTE_POINTER_STATE *State); void* WaitForInput; EFI_ABSOLUTE_POINTER_MODE *Mode; } EFI_ABSOLUTE_POINTER_PROTOCOL;
+static EFI_ABSOLUTE_POINTER_PROTOCOL *g_abs_mice[8];
+static int g_num_abs = 0;
+uint32_t g_mouse_dbg = 0;
 static int cur_mx = 400, cur_my = 300, max_w = 800, max_h = 600;
 
+static uint8_t uefi_mbtn = 0, uefi_mcycle = 0;
+static uint8_t uefi_mpkt[3];
+
+static inline uint8_t u_inb(uint16_t p) {
+    uint8_t r; __asm__ volatile ("inb %1, %0" : "=a"(r) : "Nd"(p)); return r;
+}
+static inline void u_outb(uint16_t p, uint8_t v) {
+    __asm__ volatile ("outb %0, %1" : : "a"(v), "Nd"(p));
+}
+static void u_ps2_wait_w(void) { for (int i = 0; i < 100000; i++) if (!(u_inb(0x64) & 2)) return; }
+static void u_ps2_wait_r(void) { for (int i = 0; i < 100000; i++) if (u_inb(0x64) & 1) return; }
+static void u_ps2_mouse_init(void) {
+    u_ps2_wait_w(); u_outb(0x64, 0xA8);
+    u_ps2_wait_w(); u_outb(0x64, 0x20);
+    u_ps2_wait_r(); uint8_t st = (u_inb(0x60) | 2) & ~0x20;
+    u_ps2_wait_w(); u_outb(0x64, 0x60);
+    u_ps2_wait_w(); u_outb(0x60, st);
+    u_ps2_wait_w(); u_outb(0x64, 0xD4);
+    u_ps2_wait_w(); u_outb(0x60, 0xF6);
+    u_ps2_wait_r(); (void)u_inb(0x60);
+    u_ps2_wait_w(); u_outb(0x64, 0xD4);
+    u_ps2_wait_w(); u_outb(0x60, 0xF4);
+    u_ps2_wait_r(); (void)u_inb(0x60);
+}
 void uefi_poll_input(InputState *state) {
     state->key_char = 0;
     state->scan_code = 0;
     state->left_click = 0;
 
+    while (u_inb(0x64) & 1) {
+        uint8_t status = u_inb(0x64);
+        if (!(status & 0x20)) break; /* leave keyboard byte for UEFI ConIn! */
+        uint8_t data = u_inb(0x60);
+        if (uefi_mcycle == 0 && !(data & 0x08)) continue;
+        uefi_mpkt[uefi_mcycle++] = data;
+        if (uefi_mcycle == 3) {
+            uefi_mcycle = 0;
+            uefi_mbtn = uefi_mpkt[0] & 0x07;
+            int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
+            int32_t dy = (int32_t)uefi_mpkt[2] - ((uefi_mpkt[0] & 0x20) ? 256 : 0);
+            cur_mx += dx; cur_my -= dy;
+            if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
+            if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+        }
+    }
+    if (uefi_mbtn & 1) state->left_click = 1;
     EFI_INPUT_KEY key;
     if (g_st->ConIn->ReadKeyStroke(g_st->ConIn, &key) == 0) {
         state->key_char = (char)key.UnicodeChar;
         state->scan_code = key.ScanCode;
     }
 
-    if (g_mouse) {
+    for (int i = 0; i < g_num_abs; i++) {
+        EFI_ABSOLUTE_POINTER_PROTOCOL *ap = g_abs_mice[i];
+        EFI_ABSOLUTE_POINTER_STATE as;
+        EFI_STATUS st_a = (ap && ap->Mode) ? ap->GetState(ap, &as) : 99; g_mouse_dbg = ((uint32_t)g_num_abs << 24) | ((uint32_t)g_num_mice << 16) | ((uint32_t)st_a & 0xFFFFU); if (st_a == 0) {
+            uint64_t rx = ap->Mode->AbsoluteMaxX - ap->Mode->AbsoluteMinX;
+            uint64_t ry = ap->Mode->AbsoluteMaxY - ap->Mode->AbsoluteMinY;
+            if (rx > 0) cur_mx = (int)(((as.CurrentX - ap->Mode->AbsoluteMinX) * (uint64_t)max_w) / rx);
+            if (ry > 0) cur_my = (int)(((as.CurrentY - ap->Mode->AbsoluteMinY) * (uint64_t)max_h) / ry);
+            if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
+            if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+            if (as.ActiveButtons & 1) state->left_click = 1;
+        }
+    }
+    for (int i = 0; i < g_num_mice; i++) {
+        EFI_SIMPLE_POINTER_PROTOCOL *mp = g_mice[i];
         EFI_SIMPLE_POINTER_STATE ms;
-        if (g_mouse->GetState(g_mouse, &ms) == 0) {
-            int rx = (g_mouse->Mode && g_mouse->Mode->ResolutionX > 0) ? (int)g_mouse->Mode->ResolutionX : 1;
-            int ry = (g_mouse->Mode && g_mouse->Mode->ResolutionY > 0) ? (int)g_mouse->Mode->ResolutionY : 1;
+        EFI_STATUS st_m = mp ? mp->GetState(mp, &ms) : 99; if (g_num_abs == 0) g_mouse_dbg = ((uint32_t)g_num_mice << 16) | ((uint32_t)st_m & 0xFFFFU); if (st_m == 0) {
+            int rx = (mp->Mode && mp->Mode->ResolutionX > 0) ? (int)mp->Mode->ResolutionX : 1;
+            int ry = (mp->Mode && mp->Mode->ResolutionY > 0) ? (int)mp->Mode->ResolutionY : 1;
             int dx = (rx > 100) ? (ms.RelativeMovementX / (rx / 16 + 1)) : (ms.RelativeMovementX * 8);
             int dy = (ry > 100) ? (ms.RelativeMovementY / (ry / 16 + 1)) : (ms.RelativeMovementY * 8);
             if (dx == 0 && ms.RelativeMovementX != 0) dx = (ms.RelativeMovementX > 0) ? 2 : -2;
@@ -43,9 +106,26 @@ void uefi_poll_input(InputState *state) {
             cur_mx += dx; cur_my += dy;
             if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
             if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
-            state->left_click = ms.LeftButton;
+            if (ms.LeftButton) state->left_click = 1;
         }
     }
+    while (u_inb(0x64) & 1) {
+        uint8_t status = u_inb(0x64);
+        if (!(status & 0x20)) break; /* leave keyboard byte for UEFI ConIn! */
+        uint8_t data = u_inb(0x60);
+        if (uefi_mcycle == 0 && !(data & 0x08)) continue;
+        uefi_mpkt[uefi_mcycle++] = data;
+        if (uefi_mcycle == 3) {
+            uefi_mcycle = 0;
+            uefi_mbtn = uefi_mpkt[0] & 0x07;
+            int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
+            int32_t dy = (int32_t)uefi_mpkt[2] - ((uefi_mpkt[0] & 0x20) ? 256 : 0);
+            cur_mx += dx; cur_my -= dy;
+            if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
+            if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+        }
+    }
+    if (uefi_mbtn & 1) state->left_click = 1;
     state->mouse_x = cur_mx;
     state->mouse_y = cur_my;
 }
@@ -61,9 +141,31 @@ EFI_STATUS efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
     EFI_GRAPHICS_OUTPUT_PROTOCOL *gop = 0;
 
     st->BootServices->LocateProtocol(&gop_guid, 0, (void**)&gop);
-    st->BootServices->LocateProtocol(&ptr_guid, 0, (void**)&g_mouse);
-    if (g_mouse) g_mouse->Reset(g_mouse, 0);
+    UINTN nh = 0; EFI_HANDLE *hb = 0;
+    if (st->BootServices->LocateHandleBuffer(0, 0, 0, &nh, &hb) == 0 && hb) {
+        for (UINTN i = 0; i < nh; i++) st->BootServices->ConnectController(hb[i], 0, 0, 1);
+    }
+    nh = 0; hb = 0;
+    EFI_GUID abs_guid = {0x8D59D32B, 0xC655, 0x4AE9, {0x9B,0x15,0xF2,0x59,0x04,0x99,0x2A,0x43}};
+    if (st->BootServices->LocateHandleBuffer(2, &abs_guid, 0, &nh, &hb) == 0 && hb) {
+        for (UINTN i = 0; i < nh && g_num_abs < 8; i++) {
+            EFI_ABSOLUTE_POINTER_PROTOCOL *ap = 0;
+            if (st->BootServices->HandleProtocol(hb[i], &abs_guid, (void**)&ap) == 0 && ap) {
+                ap->Reset(ap, 0); g_abs_mice[g_num_abs++] = ap;
+            }
+        }
+    }
+    nh = 0; hb = 0;
+    if (st->BootServices->LocateHandleBuffer(2, &ptr_guid, 0, &nh, &hb) == 0 && hb) {
+        for (UINTN i = 0; i < nh && g_num_mice < 8; i++) {
+            EFI_SIMPLE_POINTER_PROTOCOL *mp = 0;
+            if (st->BootServices->HandleProtocol(hb[i], &ptr_guid, (void**)&mp) == 0 && mp) {
+                mp->Reset(mp, 0); g_mice[g_num_mice++] = mp;
+            }
+        }
+    }
 
+    u_ps2_mouse_init();
     max_w = gop->Mode->Info->HorizontalResolution;
     max_h = gop->Mode->Info->VerticalResolution;
     cur_mx = max_w / 2; cur_my = max_h / 2;
@@ -82,3 +184,13 @@ EFI_STATUS efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
     kernel_main(&info);
     return 0;
 }
+
+
+
+
+
+
+
+
+
+

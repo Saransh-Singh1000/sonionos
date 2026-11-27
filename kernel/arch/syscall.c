@@ -43,6 +43,52 @@ static void sys_hw_reboot(void) {
     while (1) __asm__ volatile ("hlt");
 }
 
+static char sc_tolower(char c) {
+    return (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
+}
+
+static int sc_starts_with_nocase(const char *s, const char *prefix) {
+    while (*prefix) {
+        if (sc_tolower(*s) != sc_tolower(*prefix)) return 0;
+        s++; prefix++;
+    }
+    return (*s == 0 || *s == '/' || *s == '\\');
+}
+
+static int is_protected_syspath(const char *path) {
+    if (!path) return 0;
+    while (*path == '/' || *path == '\\') path++;
+    if (sc_starts_with_nocase(path, "efi"))  return 1;
+    if (sc_starts_with_nocase(path, "boot")) return 1;
+    if (sc_starts_with_nocase(path, "user")) return 1;
+    return 0;
+}
+
+static void deny_syspath_write(const char *path) {
+    console_set_color(0x00FACC15, 0x00090D16);
+    console_puts("\n[KERNEL] Access Denied (EACCES): Protected system path -> ");
+    console_puts(path ? path : "(null)");
+    console_puts("\n");
+    console_set_color(0x00E2E8F0, 0x00090D16);
+    console_flush_now();
+}
+extern uint32_t __attribute__((weak)) g_mouse_dbg;
+extern uint64_t kernel_dev_fb_write(uint64_t offset, const void *buf, uint64_t len);
+static uint64_t dev_fb_pos = 0;
+
+static int dev_open_path(const char *p) {
+    if (!p) return -1;
+    while (*p == '/' || *p == '\\') p++;
+    if (p[0]=='d' && p[1]=='e' && p[2]=='v' && (p[3]=='/' || p[3]=='\\')) {
+        const char *n = p + 4;
+        if (strcmp(n, "null") == 0)  return 100;
+        if (strcmp(n, "zero") == 0)  return 101;
+        if (strcmp(n, "kbd") == 0)   return 102;
+        if (strcmp(n, "mouse") == 0) return 103;
+        if (strcmp(n, "fb0") == 0)   { dev_fb_pos = 0; return 104; }
+    }
+    return -1;
+}
 uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
     uint64_t a1 = f->rdi, a2 = f->rsi, a3 = f->rdx;
     switch (num) {
@@ -58,7 +104,8 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
         case SYS_CLEAR:
             console_clear();
             return 0;
-        case SYS_OPEN: {
+        case SYS_OPEN: { int dfd = dev_open_path((const char *)a1); if (dfd >= 100) return (uint64_t)dfd;
+            int wr = 0; if ((const char *)a2) { for (const char *m = (const char *)a2; *m; m++) if (*m=='w'||*m=='a'||*m=='+') wr=1; } if (wr && is_protected_syspath((const char *)a1)) { deny_syspath_write((const char *)a1); return (uint64_t)-13; }
             Fat32File *fp = fat32_open((const char *)a1, (const char *)a2);
             if (!fp) return (uint64_t)-1LL;
             for (int i = 0; i < 32; i++) {
@@ -67,16 +114,45 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             fat32_close(fp);
             return (uint64_t)-1LL;
         }
-        case SYS_READ:
+        case SYS_READ: {
+            if ((int)a1 == 100) return 0;
+            if ((int)a1 == 101) { if (a2 && a3) memset((void *)a2, 0, (size_t)a3); return a3; }
+            if ((int)a1 == 102 || (int)a1 == 103) {
+                InputState st; memset(&st, 0, sizeof(st));
+                if (sc_info && sc_info->poll_input) sc_info->poll_input(&st);
+                SonionSysInfo *si = (SonionSysInfo *)(uintptr_t)SYSINFO_PAGE_ADDR;
+                si->mouse_x = st.mouse_x; si->mouse_y = st.mouse_y;
+                si->mouse_btns = st.left_click ? 1 : 0;
+                if (st.key_char) si->last_key = (uint8_t)st.key_char;
+                if ((int)a1 == 102 && a2 && a3 >= 1) {
+                    ((char *)a2)[0] = st.key_char;
+                    if (a3 >= 2) ((char *)a2)[1] = (char)st.scan_code;
+                    return (a3 >= 2) ? 2 : 1;
+                }
+                if ((int)a1 == 103 && a2 && a3 >= 12) {
+                    int32_t *m = (int32_t *)a2;
+                    m[0] = st.mouse_x; m[1] = st.mouse_y; m[2] = st.left_click ? 1 : 0;
+                    if (a3 >= 16) { m[3] = (int32_t)g_mouse_dbg; return 16; }
+                    return 12;
+                }
+                return 0;
+            }
             if (a1 >= 32 || !fd_tab[a1]) return 0;
             return (uint64_t)fat32_read((void *)a2, 1, (size_t)a3, fd_tab[a1]);
+        }
         case SYS_FWRITE:
+            if ((int)a1 == 100) return a3;
+            if ((int)a1 == 104) { uint64_t w = kernel_dev_fb_write(dev_fb_pos, (const void *)a2, a3); dev_fb_pos += w; return w; }
             if (a1 >= 32 || !fd_tab[a1]) return 0;
             return (uint64_t)fat32_write((const void *)a2, 1, (size_t)a3, fd_tab[a1]);
         case SYS_SEEK:
+            if ((int)a1 == 104) { dev_fb_pos = (uint64_t)a2; return 0; }
+            if ((int)a1 >= 100) return 0;
             if (a1 >= 32 || !fd_tab[a1]) return (uint64_t)-1LL;
             return (uint64_t)(int64_t)fat32_seek(fd_tab[a1], (int64_t)a2, (int)a3);
         case SYS_TELL:
+            if ((int)a1 == 104) return dev_fb_pos;
+            if ((int)a1 >= 100) return 0;
             if (a1 >= 32 || !fd_tab[a1]) return (uint64_t)-1LL;
             return (uint64_t)fat32_tell(fd_tab[a1]);
         case SYS_CLOSE:
@@ -84,7 +160,7 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             return 0;
         case SYS_MKDIR:
             return (uint64_t)(int64_t)fat32_mkdir((const char *)a1);
-        case SYS_REMOVE:
+        case SYS_REMOVE: if (is_protected_syspath((const char *)a1)) { deny_syspath_write((const char *)a1); return (uint64_t)-13; }
             return (uint64_t)(int64_t)fat32_remove((const char *)a1);
         case SYS_OPENDIR: {
             Fat32Dir *d = fat32_opendir((const char *)a1);
@@ -277,6 +353,14 @@ void ring3_fault_recover(uint64_t exc, uint64_t rip, uint64_t cr2) {
     r3_exit_code[d] = -(int)(128 + exc);
     longjmp(r3_ret_jmp[d], 1);
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -23,6 +23,15 @@ static void swap_buffers(void) {
     }
 }
 
+uint64_t kernel_dev_fb_write(uint64_t offset, const void *buf, uint64_t len) {
+    if (!g_info || !buf || len == 0) return 0;
+    uint64_t max_bytes = (uint64_t)g_info->width * g_info->height * 4ULL;
+    if (offset >= max_bytes) return 0;
+    if (offset + len > max_bytes) len = max_bytes - offset;
+    memcpy(((uint8_t *)backbuf) + offset, buf, (size_t)len);
+    swap_buffers();
+    return len;
+}
 void kernel_main(BootInfo *info) {
     g_info = info;
     gdt_init();
@@ -48,4 +57,5 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
 

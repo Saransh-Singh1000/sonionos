@@ -55,20 +55,55 @@ static void calibrate_tsc(void) {
     if (guard < 10000000 && t1 > t0) tsc_ticks_per_ms = (t1 - t0) / 10;
 }
 
+static int32_t ps2_mx = 400, ps2_my = 300;
+static uint8_t ps2_mbtn = 0, ps2_mcycle = 0;
+static uint8_t ps2_mpkt[3];
+
+static void ps2_wait_write(void) {
+    for (int i = 0; i < 100000; i++) if (!(inb(0x64) & 2)) return;
+}
+static void ps2_wait_read(void) {
+    for (int i = 0; i < 100000; i++) if (inb(0x64) & 1) return;
+}
+static void ps2_mouse_init(void) {
+    ps2_wait_write(); outb(0x64, 0xA8);
+    ps2_wait_write(); outb(0x64, 0x20);
+    ps2_wait_read();  uint8_t st = (inb(0x60) | 2) & ~0x20;
+    ps2_wait_write(); outb(0x64, 0x60);
+    ps2_wait_write(); outb(0x60, st);
+    ps2_wait_write(); outb(0x64, 0xD4);
+    ps2_wait_write(); outb(0x60, 0xF6);
+    ps2_wait_read();  (void)inb(0x60);
+    ps2_wait_write(); outb(0x64, 0xD4);
+    ps2_wait_write(); outb(0x60, 0xF4);
+    ps2_wait_read();  (void)inb(0x60);
+}
 void bios_poll_input(InputState *state) {
     state->key_char = 0;
     state->scan_code = 0;
-    state->left_click = 0;
     while (inb(0x64) & 1) {
         uint8_t status = inb(0x64);
         uint8_t data   = inb(0x60);
-        if (!(status & 0x20) && !(data & 0x80)) {
+        if (status & 0x20) {
+            if (ps2_mcycle == 0 && !(data & 0x08)) continue;
+            ps2_mpkt[ps2_mcycle++] = data;
+            if (ps2_mcycle == 3) {
+                ps2_mcycle = 0;
+                ps2_mbtn = ps2_mpkt[0] & 0x07;
+                int32_t dx = (int32_t)ps2_mpkt[1] - ((ps2_mpkt[0] & 0x10) ? 256 : 0);
+                int32_t dy = (int32_t)ps2_mpkt[2] - ((ps2_mpkt[0] & 0x20) ? 256 : 0);
+                ps2_mx += dx; ps2_my -= dy;
+                if (ps2_mx < 0) ps2_mx = 0; if (ps2_mx > 799) ps2_mx = 799;
+                if (ps2_my < 0) ps2_my = 0; if (ps2_my > 599) ps2_my = 599;
+            }
+        } else if (!(data & 0x80)) {
             if (data == 0x01) state->scan_code = 0x17;
             else if (data < 128) state->key_char = scancode_ascii[data];
         }
     }
-    state->mouse_x = 400;
-    state->mouse_y = 300;
+    state->mouse_x = ps2_mx;
+    state->mouse_y = ps2_my;
+    state->left_click = (ps2_mbtn & 1) ? 1 : 0;
 }
 
 void bios_sleep_ms(uint32_t ms) {
@@ -92,6 +127,7 @@ void bios_shutdown(void) {
 __attribute__((section(".text.entry")))
 void bios_entry(VesaModeInfo *vesa) {
     calibrate_tsc();
+    ps2_mouse_init();
 
     BootInfo info;
     info.framebuffer = (uint32_t *)(uintptr_t)vesa->framebuffer;
@@ -106,3 +142,8 @@ void bios_entry(VesaModeInfo *vesa) {
     kernel_main(&info);
     while (1) __asm__("hlt");
 }
+
+
+
+uint32_t g_mouse_dbg = 0;
+
