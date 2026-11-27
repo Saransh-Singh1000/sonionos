@@ -5,15 +5,15 @@ typedef uint64_t UINTN; typedef uint64_t EFI_STATUS; typedef void* EFI_HANDLE; t
 typedef struct { uint32_t Data1; uint16_t Data2; uint16_t Data3; uint8_t Data4[8]; } EFI_GUID;
 typedef struct { uint64_t Signature; uint32_t Revision; uint32_t HeaderSize; uint32_t CRC32; uint32_t Reserved; } EFI_TABLE_HEADER;
 typedef struct { uint16_t ScanCode; CHAR16 UnicodeChar; } EFI_INPUT_KEY;
-typedef struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL { void* Reset; EFI_STATUS (*ReadKeyStroke)(struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, EFI_INPUT_KEY *Key); void* WaitForKey; } EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
+typedef struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL { void* Reset; EFI_STATUS (__attribute__((ms_abi)) *ReadKeyStroke)(struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL *This, EFI_INPUT_KEY *Key); void* WaitForKey; } EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
 typedef struct { int32_t RelativeMovementX, RelativeMovementY, RelativeMovementZ; uint8_t LeftButton, RightButton; } EFI_SIMPLE_POINTER_STATE;
 typedef struct { uint64_t ResolutionX, ResolutionY, ResolutionZ; uint8_t LeftButton, RightButton; } EFI_SIMPLE_POINTER_MODE;
 typedef struct _EFI_SIMPLE_POINTER_PROTOCOL { EFI_STATUS (*Reset)(struct _EFI_SIMPLE_POINTER_PROTOCOL *This, uint8_t Ext); EFI_STATUS (*GetState)(struct _EFI_SIMPLE_POINTER_PROTOCOL *This, EFI_SIMPLE_POINTER_STATE *State); void* WaitForInput; EFI_SIMPLE_POINTER_MODE *Mode; } EFI_SIMPLE_POINTER_PROTOCOL;
 typedef struct { uint32_t Version, HorizontalResolution, VerticalResolution, PixelFormat, PixelInformation[4], PixelsPerScanLine; } EFI_GRAPHICS_OUTPUT_MODE_INFORMATION;
 typedef struct { uint32_t MaxMode, Mode; EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info; UINTN SizeOfInfo; uint64_t FrameBufferBase; UINTN FrameBufferSize; } EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE;
 typedef struct _EFI_GRAPHICS_OUTPUT_PROTOCOL { void* QueryMode; void* SetMode; void* Blt; EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode; } EFI_GRAPHICS_OUTPUT_PROTOCOL;
-typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10,*f11,*f12,*f13,*f14,*f15,*f16,*f17; EFI_STATUS (*HandleProtocol)(EFI_HANDLE H, EFI_GUID *P, void **I); void *f19,*f20,*f21,*f22,*f23,*f24,*f25,*f26,*f27,*f28; EFI_STATUS (*Stall)(UINTN Microseconds); void *f30; EFI_STATUS (*ConnectController)(EFI_HANDLE C, EFI_HANDLE *D, void *R, uint8_t Rec); void *f32,*f33,*f34,*f35; EFI_STATUS (*LocateHandleBuffer)(UINTN T, EFI_GUID *P, void *K, UINTN *N, EFI_HANDLE **B); void *f37; EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface); } EFI_BOOT_SERVICES;
-typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10; void (*ResetSystem)(int ResetType, EFI_STATUS ResetStatus, UINTN DataSize, void *ResetData); } EFI_RUNTIME_SERVICES;
+typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10,*f11,*f12,*f13,*f14,*f15,*f16,*f17; EFI_STATUS (*HandleProtocol)(EFI_HANDLE H, EFI_GUID *P, void **I); void *f19,*f20,*f21,*f22,*f23,*f24,*f25,*f26,*f27,*f28; EFI_STATUS (__attribute__((ms_abi)) *Stall)(UINTN Microseconds); void *f30; EFI_STATUS (*ConnectController)(EFI_HANDLE C, EFI_HANDLE *D, void *R, uint8_t Rec); void *f32,*f33,*f34,*f35; EFI_STATUS (*LocateHandleBuffer)(UINTN T, EFI_GUID *P, void *K, UINTN *N, EFI_HANDLE **B); void *f37; EFI_STATUS (__attribute__((ms_abi)) *LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface); } EFI_BOOT_SERVICES;
+typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10; void (__attribute__((ms_abi)) *ResetSystem)(int ResetType, EFI_STATUS ResetStatus, UINTN DataSize, void *ResetData); } EFI_RUNTIME_SERVICES;
 typedef struct { EFI_TABLE_HEADER Hdr; CHAR16 *FirmwareVendor; uint32_t FirmwareRevision; EFI_HANDLE ConsoleInHandle; EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn; EFI_HANDLE ConsoleOutHandle; void* ConOut; EFI_HANDLE StandardErrorHandle; void* StdErr; EFI_RUNTIME_SERVICES *RuntimeServices; EFI_BOOT_SERVICES *BootServices; } EFI_SYSTEM_TABLE;
 
 static EFI_SYSTEM_TABLE *g_st = 0;
@@ -134,7 +134,7 @@ void uefi_sleep_ms(uint32_t ms) { g_st->BootServices->Stall((UINTN)ms * 1000); }
 void uefi_reboot(void) { g_st->RuntimeServices->ResetSystem(0, 0, 0, 0); }
 void uefi_shutdown(void) { g_st->RuntimeServices->ResetSystem(2, 0, 0, 0); }
 
-EFI_STATUS efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
+EFI_STATUS __attribute__((ms_abi)) efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
     g_st = st;
     EFI_GUID gop_guid = {0x9042a9de, 0x23dc, 0x4a38, {0x96,0xfb,0x7a,0xde,0xd0,0x80,0x51,0x6a}};
     EFI_GUID ptr_guid = {0x31878c87, 0x0b75, 0x11d5, {0x9a,0x4f,0x00,0x90,0x27,0x3f,0xc1,0x4d}};
@@ -184,6 +184,7 @@ EFI_STATUS efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
     kernel_main(&info);
     return 0;
 }
+
 
 
 

@@ -5,6 +5,8 @@
 #define PTE_USER     (1ULL << 2)
 #define PTE_PS_2MB   (1ULL << 7)
 
+static uint64_t pdpt_fb[512] __attribute__((aligned(4096)));
+static uint64_t pd_fb[512]   __attribute__((aligned(4096)));
 static uint64_t pml4[512]       __attribute__((aligned(4096)));
 static uint64_t pdpt[512]       __attribute__((aligned(4096)));
 static uint64_t pd_low[4][512] __attribute__((aligned(4096)));
@@ -47,6 +49,7 @@ void paging_init(BootInfo *info) {
     __asm__ volatile ("movq %0, %%cr4" : : "r"(cr4));
     __asm__ volatile ("movq %0, %%cr3" : : "r"(cr3) : "memory");
 }
+
 
 
 

@@ -14,35 +14,7 @@ if errorlevel 1 goto :error
 objcopy -O binary build\init.elf disk\USER\INIT.BIN
 if errorlevel 1 goto :error
 
-gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\hello_r3.c -o build\hello_r3.o
-if errorlevel 1 goto :error
-ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\hello_r3.elf build\hello_r3.o
-if errorlevel 1 goto :error
-objcopy -O binary build\hello_r3.elf disk\USER\HELLO.BIN
-if errorlevel 1 goto :error
-
-gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\crash_r3.c -o build\crash_r3.o
-if errorlevel 1 goto :error
-ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\crash_r3.elf build\crash_r3.o
-if errorlevel 1 goto :error
-objcopy -O binary build\crash_r3.elf disk\USER\CRASH.BIN
-if errorlevel 1 goto :error
-
-gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\bench_r3.c -o build\bench_r3.o
-if errorlevel 1 goto :error
-ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\bench_r3.elf build\bench_r3.o
-if errorlevel 1 goto :error
-objcopy -O binary build\bench_r3.elf disk\USER\BENCH.BIN
-if errorlevel 1 goto :error
-
-gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\meminfo_r3.c -o build\meminfo_r3.o
-if errorlevel 1 goto :error
-ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\meminfo_r3.elf build\meminfo_r3.o
-if errorlevel 1 goto :error
-objcopy -O binary build\meminfo_r3.elf disk\USER\MEMINFO.BIN
-if errorlevel 1 goto :error
-
-set KSRCS=kernel\kernel.c kernel\gfx.c kernel\desktop.c kernel\panic.c kernel\console.c kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\time.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c
+set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\blockdev.c kernel\drivers\nvme.c kernel\drivers\pci.c kernel\drivers\usb_msc.c kernel\fs\fat32.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\string.c kernel\libc\time.c kernel\console.c kernel\desktop.c kernel\gfx.c kernel\kernel.c kernel\panic.c
 
 echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===
 gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %KSRCS% -o disk\EFI\BOOT\BOOTX64.EFI
@@ -61,7 +33,7 @@ if %errorlevel%==0 (
         if errorlevel 1 goto :error
     )
 
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\gfx.o build\desktop.o build\panic.o build\console.o build\gdt.o build\paging.o build\syscall.o build\string.o build\memory.o build\setjmp.o build\time.o build\blockdev.o build\pci.o build\nvme.o build\ahci.o build\ata.o build\usb_msc.o build\fat32.o
+    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\usb_msc.o build\fat32.o build\memory.o build\setjmp.o build\string.o build\time.o build\console.o build\desktop.o build\gfx.o build\kernel.o build\panic.o
     if errorlevel 1 goto :error
 
     python scripts\build_flat.py
@@ -78,6 +50,12 @@ echo === [4/4] Launching QEMU ===
 set QEMU="C:\Program Files\qemu\qemu-system-x86_64.exe"
 set BIOS_FD="C:\Program Files\qemu\share\edk2-x86_64-code.fd"
 
+if /i "%1"=="iso" (
+    python scripts\make_iso.py
+    if errorlevel 1 goto :error
+    echo [READY] Share build\sonionOS.iso with your friend!
+    goto :eof
+)
 if /i "%1"=="bios" (
     %QEMU% -cpu max -m 256M -drive file=build\sonionos_bios.img,format=raw,if=ide,index=0 -drive file=fat:rw:disk,format=raw,if=ide,index=1 -display sdl,grab-mod=lctrl-lalt -serial none
 ) else (
@@ -89,6 +67,14 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
+
+
+
+
+
+
+
 
 
 
