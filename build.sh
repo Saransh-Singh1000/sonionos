@@ -2,14 +2,32 @@
 
 set -e
 
-# Toolchain configuration
-CC="${CC:-x86_64-w64-mingw32-gcc}"
-LD="${LD:-x86_64-w64-mingw32-ld}"
-OBJCOPY="${OBJCOPY:-x86_64-w64-mingw32-objSSScopy}"
+if ! command -v gcc >/dev/null 2>&1; then
+    echo "[ERROR] GCC not found!"
+    exit 1
+fi
+
+if ! command -v ld >/dev/null 2>&1; then
+    echo "[ERROR] LD not found!"
+    exit 1
+fi
+
+if ! command -v objcopy >/dev/null 2>&1; then
+    echo "[ERROR] objcopy not found!"
+    exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "[ERROR] Python 3 not found!"
+    exit 1
+fi
+
+CC="${CC:-gcc}"
+LD="${LD:-ld}"
+OBJCOPY="${OBJCOPY:-objcopy}"
 
 QEMU="${QEMU:-qemu-system-x86_64}"
 
-# Find OVMF firmware
 BIOS_FD="${BIOS_FD:-}"
 
 if [ -z "$BIOS_FD" ]; then
@@ -36,113 +54,127 @@ error() {
 
 trap error ERR
 
-# ============================================================
-# [1/4] USER MODE
-# ============================================================
+UFLAGS=(
+    -O2
+    -ffast-math
+    -ffreestanding
+    -fno-stack-protector
+    -mno-stack-arg-probe
+    -mno-red-zone
+    -fno-asynchronous-unwind-tables
+    -U_WIN32
+    -U_WIN64
+    -Iuser
+    -Ikernel/include
+    -Ikernel/include/libc
+    -Iuser/lua
+)
 
-UFLAGS="-O2 -ffast-math -ffreestanding -fno-stack-protector \
--mno-stack-arg-probe -mno-red-zone \
--fno-asynchronous-unwind-tables \
--U_WIN32 -U_WIN64 \
--Iuser -Ikernel/include -Ikernel/include/libc -Iuser/lua"
-
-USRCS="
-user/init.c
-user/ulibc/stdio.c
-user/ulibc/time.c
-user/ulibc/memory.c
-kernel/libc/string.c
-kernel/libc/stdlib.c
-kernel/libc/math.c
-kernel/libc/setjmp.c
-kernel/libc/locale_signal.c
-user/lua_runner.c
-"
+USRCS=(
+    user/init.c
+    user/ulibc/stdio.c
+    user/ulibc/time.c
+    user/ulibc/memory.c
+    kernel/libc/string.c
+    kernel/libc/stdlib.c
+    kernel/libc/math.c
+    kernel/libc/setjmp.c
+    kernel/libc/locale_signal.c
+    user/lua_runner.c
+)
 
 echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
 
-$CC $UFLAGS $USRCS user/lua/*.c \
+"$CC" "${UFLAGS[@]}" \
+    "${USRCS[@]}" \
+    user/lua/*.c \
     -nostdlib \
     -Wl,--disable-dynamicbase,--image-base,0x0,-T,user/user.ld \
     -o build/init.elf
 
-$OBJCOPY -O binary build/init.elf disk/USER/INIT.BIN
+"$OBJCOPY" -O binary build/init.elf disk/USER/INIT.BIN
 
-# HELLO.BIN
+echo "=== Building HELLO.BIN ==="
 
-$CC -O2 -ffreestanding -fno-stack-protector \
+"$CC" -O2 -ffreestanding -fno-stack-protector \
     -mno-stack-arg-probe -mno-red-zone \
     -fno-asynchronous-unwind-tables \
     -Ikernel/include \
     -c user/hello_r3.c -o build/hello_r3.o
 
-$LD --disable-dynamicbase --image-base 0x0 \
+"$LD" --disable-dynamicbase --image-base 0x0 \
     -T user/child.ld \
     -o build/hello_r3.elf build/hello_r3.o
 
-$OBJCOPY -O binary build/hello_r3.elf disk/USER/HELLO.BIN
+"$OBJCOPY" -O binary build/hello_r3.elf disk/USER/HELLO.BIN
 
-# CRASH.BIN
+echo "=== Building CRASH.BIN ==="
 
-$CC -O2 -ffreestanding -fno-stack-protector \
+"$CC" -O2 -ffreestanding -fno-stack-protector \
     -mno-stack-arg-probe -mno-red-zone \
     -fno-asynchronous-unwind-tables \
     -Ikernel/include \
     -c user/crash_r3.c -o build/crash_r3.o
 
-$LD --disable-dynamicbase --image-base 0x0 \
+"$LD" --disable-dynamicbase --image-base 0x0 \
     -T user/child.ld \
     -o build/crash_r3.elf build/crash_r3.o
 
-$OBJCOPY -O binary build/crash_r3.elf disk/USER/CRASH.BIN
+"$OBJCOPY" -O binary build/crash_r3.elf disk/USER/CRASH.BIN
 
-# BENCH.BIN
+echo "=== Building BENCH.BIN ==="
 
-$CC -O2 -ffreestanding -fno-stack-protector \
+"$CC" -O2 -ffreestanding -fno-stack-protector \
     -mno-stack-arg-probe -mno-red-zone \
     -fno-asynchronous-unwind-tables \
     -Ikernel/include \
     -c user/bench_r3.c -o build/bench_r3.o
 
-$LD --disable-dynamicbase --image-base 0x0 \
+"$LD" --disable-dynamicbase --image-base 0x0 \
     -T user/child.ld \
     -o build/bench_r3.elf build/bench_r3.o
 
-$OBJCOPY -O binary build/bench_r3.elf disk/USER/BENCH.BIN
+"$OBJCOPY" -O binary build/bench_r3.elf disk/USER/BENCH.BIN
 
-# ============================================================
-# KERNEL SOURCE FILES
-# ============================================================
+echo "=== Building MEMINFO.BIN ==="
 
-KSRCS="
-kernel/kernel.c
-kernel/gfx.c
-kernel/desktop.c
-kernel/panic.c
-kernel/console.c
-kernel/arch/gdt.c
-kernel/arch/paging.c
-kernel/arch/syscall.c
-kernel/libc/string.c
-kernel/libc/memory.c
-kernel/libc/setjmp.c
-kernel/libc/time.c
-kernel/drivers/blockdev.c
-kernel/drivers/pci.c
-kernel/drivers/nvme.c
-kernel/drivers/ahci.c
-kernel/drivers/ata.c
-kernel/drivers/usb_msc.c
-kernel/fs/fat32.c
-"
+"$CC" -O2 -ffreestanding -fno-stack-protector \
+    -mno-stack-arg-probe -mno-red-zone \
+    -fno-asynchronous-unwind-tables \
+    -Ikernel/include \
+    -c user/meminfo_r3.c -o build/meminfo_r3.o
 
-# ============================================================
-# [2/4] UEFI KERNEL
-# ============================================================
+"$LD" --disable-dynamicbase --image-base 0x0 \
+    -T user/child.ld \
+    -o build/meminfo_r3.elf build/meminfo_r3.o
+
+"$OBJCOPY" -O binary build/meminfo_r3.elf disk/USER/MEMINFO.BIN
+
+KSRCS=(
+    kernel/kernel.c
+    kernel/gfx.c
+    kernel/desktop.c
+    kernel/panic.c
+    kernel/console.c
+    kernel/arch/gdt.c
+    kernel/arch/paging.c
+    kernel/arch/syscall.c
+    kernel/libc/string.c
+    kernel/libc/memory.c
+    kernel/libc/setjmp.c
+    kernel/libc/time.c
+    kernel/drivers/blockdev.c
+    kernel/drivers/pci.c
+    kernel/drivers/nvme.c
+    kernel/drivers/ahci.c
+    kernel/drivers/ata.c
+    kernel/drivers/usb_msc.c
+    kernel/fs/fat32.c
+)
 
 echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 
-$CC -O3 -ffast-math \
+"$CC" -O3 -ffast-math \
     -ffreestanding \
     -fno-stack-protector \
     -mno-stack-arg-probe \
@@ -154,26 +186,20 @@ $CC -O3 -ffast-math \
     -Ikernel/include \
     -Ikernel/include/libc \
     boot/uefi/main.c \
-    $KSRCS \
+    "${KSRCS[@]}" \
     -o disk/EFI/BOOT/BOOTX64.EFI
-
-# ============================================================
-# [3/4] BIOS KERNEL
-# ============================================================
 
 echo "=== [3/4] Compiling Thin Ring 0 Kernel (BIOS) ==="
 
 if command -v nasm >/dev/null 2>&1; then
 
     nasm -f bin boot/bios/boot.asm -o build/bios_boot.bin
-
     nasm -f win64 boot/bios/entry64.asm -o build/entry64.o
 
-    for src in boot/bios/bios_hal.c $KSRCS; do
-
+    for src in boot/bios/bios_hal.c "${KSRCS[@]}"; do
         name=$(basename "$src" .c)
 
-        $CC -O3 -ffast-math \
+        "$CC" -O3 -ffast-math \
             -ffreestanding \
             -fno-stack-protector \
             -mno-stack-arg-probe \
@@ -186,10 +212,9 @@ if command -v nasm >/dev/null 2>&1; then
             -Ikernel/include/libc \
             -c "$src" \
             -o "build/$name.o"
-
     done
 
-    $LD --disable-dynamicbase --image-base 0x10000 \
+    "$LD" --disable-dynamicbase --image-base 0x10000 \
         -T boot/bios/bios.ld \
         -o build/bios_kernel.elf \
         build/entry64.o \
@@ -226,20 +251,17 @@ else
     echo "[SKIP] NASM not found!"
 fi
 
-# ============================================================
-# [4/4] QEMU
-# ============================================================
-
 echo "=== [4/4] Launching QEMU ==="
 
-if [ "$1" = "bios" ]; then
+if [ "${1:-}" = "bios" ]; then
 
     "$QEMU" \
         -cpu max \
         -m 256M \
         -drive file=build/sonionos_bios.img,format=raw,if=ide,index=0 \
         -drive file=fat:rw:disk,format=raw,if=ide,index=1 \
-        -serial stdio
+        -display sdl,grab-mod=lctrl-lalt \
+        -serial none
 
 else
 
@@ -254,8 +276,7 @@ else
         -m 256M \
         -drive if=pflash,format=raw,readonly=on,file="$BIOS_FD" \
         -drive file=fat:rw:disk,format=raw \
-        -device qemu-xhci \
-        -device usb-mouse \
-        -serial stdio
+        -display sdl,grab-mod=lctrl-lalt \
+        -serial none
 
-fi
+
