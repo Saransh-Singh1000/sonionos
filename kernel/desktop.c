@@ -1,5 +1,6 @@
 #include "desktop.h"
 #include "gfx.h"
+#include "wallpaper.h"
 
 static BootInfo *d_info;
 
@@ -82,36 +83,65 @@ static void draw_window(void) {
 
 
 /* Left-side open application switcher */
+
 static void draw_open_apps(void) {
     if (!d_info) return;
 
     int cy = (int)d_info->height / 2;
-    int radius = 76;
+    int radius = 88;
+    int cx = -18;
 
-    /* Draw a semicircle attached to the left screen edge */
-    for (int dy = -radius; dy <= radius; dy++) {
+    int dx = mouse_x - cx;
+    int dy = mouse_y - cy;
+    int near = (dx * dx + dy * dy) < (radius + 38) * (radius + 38);
+
+    uint8_t alpha = near ? 238 : 105;
+    uint32_t accent = near ? 0x0038BDF8 : 0x002D83A9;
+
+    /* Semicircle extending beyond the left edge */
+    for (int y = cy - radius; y <= cy + radius; y++) {
+        int oy = y - cy;
+        int remaining = radius * radius - oy * oy;
+        if (remaining < 0 || y < 0 || y >= (int)d_info->height)
+            continue;
+
         int span = 0;
-        while ((span + 1) * (span + 1) + dy * dy
-               <= radius * radius)
+        while ((span + 1) * (span + 1) <= remaining)
             span++;
 
-        int y = cy + dy;
-        if (y < 0 || y >= (int)d_info->height) continue;
+        for (int x = 0; x <= span + cx; x++) {
+            if (x < 0) continue;
+            gfx_blend_pixel(x, y, 0x0018273D, alpha);
+        }
 
-        gfx_fill_rect(0, y, span + 1, 1, 0x0018273D);
+        /* Outer illuminated boundary */
+        int edge = cx + span;
+        if (edge >= 0 && edge < (int)d_info->width)
+            gfx_blend_pixel(edge, y, accent, near ? 255 : 170);
 
-        /* Curved outer edge */
-        gfx_pixel(span, y, 0x0038BDF8);
+        /* Inner coloured curved boundary */
+        int inner = cx + span - 7;
+        if (inner >= 0 && inner < (int)d_info->width)
+            gfx_blend_pixel(inner, y, 0x0022D3EE, near ? 230 : 115);
     }
 
-    /* Console app tab */
-    int ix = 14;
+    /* Small accent indicators */
+    for (int i = 0; i < 3; i++) {
+        int px = 9 + i * 9;
+        int py = cy + 38;
+        gfx_fill_rect(px, py, 4, 4,
+                      near ? 0x0038BDF8 : 0x00516B87);
+    }
+
+    /* Console app tile */
+    int ix = 12;
     int iy = cy - 20;
 
-    gfx_fill_rect(ix, iy, 40, 40, 0x0038BDF8);
-    gfx_rect(ix, iy, 40, 40, 0x00E2E8F0);
+    gfx_fill_rect(ix, iy, 40, 40,
+                  near ? 0x0038BDF8 : 0x002B5675);
+    gfx_rect(ix, iy, 40, 40,
+             near ? 0x00FFFFFF : 0x007B9BB8);
 
-    /* Simple terminal symbol */
     gfx_fill_rect(ix + 8, iy + 9, 24, 22, 0x00090D16);
     gfx_fill_rect(ix + 12, iy + 15, 8, 2, 0x00FFFFFF);
     gfx_fill_rect(ix + 18, iy + 19, 2, 7, 0x00FFFFFF);
@@ -123,23 +153,28 @@ static void draw_scene(void) {
     uint32_t h = d_info->height;
 
     gfx_fill(0x000B1220);
+    wallpaper_draw((int)w, (int)h);
 
-    gfx_fill_rect(w * 3 / 5, 60, w / 3, h / 3,
-                  0x0015223A);
-
-    gfx_fill_rect(w * 2 / 3, 90, w / 4, h / 4,
-                  0x001B2C48);
+    /* Subtle desktop accent lines */
+    for (uint32_t i = 0; i < 5; i++) {
+        int px = (int)(w * 3 / 5 + i * 13);
+        gfx_blend_pixel(px, 52, 0x0038BDF8, 90);
+    }
 
     /* Top panel */
     gfx_fill_rect(0, 0, w, 34, 0x00101829);
     gfx_fill_rect(0, 33, w, 1, 0x0038BDF8);
+    gfx_fill_rect((int)w - 72, 13, 7, 7, 0x0022C55E);
+    gfx_fill_rect((int)w - 58, 15, 35, 3, 0x00516B87);
 
     /* Desktop icons */
     for (int i = 0; i < 3; i++) {
         int x = 28;
         int y = 64 + i * 100;
 
-        if (selected_icon == i) {
+        int hovered = inside(mouse_x, mouse_y, x - 6, y - 6, 60, 60);
+
+        if (selected_icon == i || hovered) {
             gfx_fill_rect(x - 6, y - 6, 60, 60,
                           0x00304765);
             gfx_rect(x - 6, y - 6, 60, 60,
@@ -235,6 +270,10 @@ void desktop_init(BootInfo *info, uint32_t *backbuf) {
     old_mouse_y = mouse_y;
 
     draw_scene();
+}
+
+void desktop_refresh(void) {
+    if (d_info) draw_scene();
 }
 
 static void maximize_window(void) {
