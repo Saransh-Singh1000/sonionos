@@ -10,6 +10,7 @@
 #include "console.h"
 #include "desktop.h"
 #include "splash.h"
+#include "kbd_events.h"
 #include "sched.h"
 #include "blockdev.h"
 #include "fs/fat32.h"
@@ -61,6 +62,9 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
+
+
 
 
 

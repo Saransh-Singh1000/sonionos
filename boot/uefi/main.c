@@ -29,7 +29,7 @@ uint32_t g_mouse_dbg = 0;
 static int cur_mx = 400, cur_my = 300, max_w = 800, max_h = 600;
 
 static uint8_t uefi_mbtn = 0, uefi_mcycle = 0;
-static uint8_t uefi_mpkt[3];
+static uint8_t uefi_mpkt[4];
 
 static inline uint8_t u_inb(uint16_t p) {
     uint8_t r; __asm__ volatile ("inb %1, %0" : "=a"(r) : "Nd"(p)); return r;
@@ -39,6 +39,8 @@ static inline void u_outb(uint16_t p, uint8_t v) {
 }
 static void u_ps2_wait_w(void) { for (int i = 0; i < 100000; i++) if (!(u_inb(0x64) & 2)) return; }
 static void u_ps2_wait_r(void) { for (int i = 0; i < 100000; i++) if (u_inb(0x64) & 1) return; }
+static uint8_t uefi_pkt_len = 3;
+static int8_t uefi_mz = 0;
 static void u_ps2_mouse_init(void) {
     u_ps2_wait_w(); u_outb(0x64, 0xA8);
     u_ps2_wait_w(); u_outb(0x64, 0x20);
@@ -48,6 +50,14 @@ static void u_ps2_mouse_init(void) {
     u_ps2_wait_w(); u_outb(0x64, 0xD4);
     u_ps2_wait_w(); u_outb(0x60, 0xF6);
     u_ps2_wait_r(); (void)u_inb(0x60);
+    uint8_t rates[3] = { 200, 100, 80 };
+    for (int r = 0; r < 3; r++) {
+        u_ps2_wait_w(); u_outb(0x64, 0xD4); u_ps2_wait_w(); u_outb(0x60, 0xF3); u_ps2_wait_r(); (void)u_inb(0x60);
+        u_ps2_wait_w(); u_outb(0x64, 0xD4); u_ps2_wait_w(); u_outb(0x60, rates[r]); u_ps2_wait_r(); (void)u_inb(0x60);
+    }
+    u_ps2_wait_w(); u_outb(0x64, 0xD4); u_ps2_wait_w(); u_outb(0x60, 0xF2); u_ps2_wait_r(); (void)u_inb(0x60);
+    u_ps2_wait_r();
+    uefi_pkt_len = (u_inb(0x60) == 3) ? 4 : 3;
     u_ps2_wait_w(); u_outb(0x64, 0xD4);
     u_ps2_wait_w(); u_outb(0x60, 0xF4);
     u_ps2_wait_r(); (void)u_inb(0x60);
@@ -56,6 +66,8 @@ void uefi_poll_input(InputState *state) {
     state->key_char = 0;
     state->scan_code = 0;
     state->left_click = 0;
+    state->scroll_z = 0;
+    uefi_mz = 0;
 
     while (u_inb(0x64) & 1) {
         uint8_t status = u_inb(0x64);
@@ -63,7 +75,7 @@ void uefi_poll_input(InputState *state) {
         uint8_t data = u_inb(0x60);
         if (uefi_mcycle == 0 && !(data & 0x08)) continue;
         uefi_mpkt[uefi_mcycle++] = data;
-        if (uefi_mcycle == 3) {
+        if (uefi_mcycle == uefi_pkt_len) {
             uefi_mcycle = 0;
             uefi_mbtn = uefi_mpkt[0] & 0x07;
             int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
@@ -71,9 +83,12 @@ void uefi_poll_input(InputState *state) {
             cur_mx += dx; cur_my -= dy;
             if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
             if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+            if (uefi_pkt_len == 4) { int8_t dz = (int8_t)(uefi_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; uefi_mz += dz; }
         }
     }
+    state->mouse_btns = uefi_mbtn & 0x07;
     if (uefi_mbtn & 1) state->left_click = 1;
+    state->scroll_z = uefi_mz;
     EFI_INPUT_KEY key;
     if (g_st->ConIn->ReadKeyStroke(g_st->ConIn, &key) == 0) {
         state->key_char = (char)key.UnicodeChar;
@@ -90,6 +105,7 @@ void uefi_poll_input(InputState *state) {
             if (ry > 0) cur_my = (int)(((as.CurrentY - ap->Mode->AbsoluteMinY) * (uint64_t)max_h) / ry);
             if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
             if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+            if (uefi_pkt_len == 4) { int8_t dz = (int8_t)(uefi_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; uefi_mz += dz; }
             if (as.ActiveButtons & 1) state->left_click = 1;
         }
     }
@@ -106,6 +122,7 @@ void uefi_poll_input(InputState *state) {
             cur_mx += dx; cur_my += dy;
             if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
             if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+            if (uefi_pkt_len == 4) { int8_t dz = (int8_t)(uefi_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; uefi_mz += dz; }
             if (ms.LeftButton) state->left_click = 1;
         }
     }
@@ -115,7 +132,7 @@ void uefi_poll_input(InputState *state) {
         uint8_t data = u_inb(0x60);
         if (uefi_mcycle == 0 && !(data & 0x08)) continue;
         uefi_mpkt[uefi_mcycle++] = data;
-        if (uefi_mcycle == 3) {
+        if (uefi_mcycle == uefi_pkt_len) {
             uefi_mcycle = 0;
             uefi_mbtn = uefi_mpkt[0] & 0x07;
             int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
@@ -123,9 +140,12 @@ void uefi_poll_input(InputState *state) {
             cur_mx += dx; cur_my -= dy;
             if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
             if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
+            if (uefi_pkt_len == 4) { int8_t dz = (int8_t)(uefi_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; uefi_mz += dz; }
         }
     }
+    state->mouse_btns = uefi_mbtn & 0x07;
     if (uefi_mbtn & 1) state->left_click = 1;
+    state->scroll_z = uefi_mz;
     state->mouse_x = cur_mx;
     state->mouse_y = cur_my;
 }
@@ -184,6 +204,8 @@ EFI_STATUS __attribute__((ms_abi)) efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st
     kernel_main(&info);
     return 0;
 }
+
+
 
 
 

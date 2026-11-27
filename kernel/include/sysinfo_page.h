@@ -17,7 +17,11 @@ typedef struct {
     int32_t  mouse_y;
     uint32_t mouse_btns;
     uint32_t last_key;
+    int32_t  mouse_z;
+    uint32_t key_mods;
 } SonionSysInfo;
 
 #endif
+
+
 

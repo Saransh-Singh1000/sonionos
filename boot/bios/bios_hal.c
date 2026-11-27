@@ -57,8 +57,10 @@ static void calibrate_tsc(void) {
 }
 
 static int32_t ps2_mx = 400, ps2_my = 300;
-static uint8_t ps2_mbtn = 0, ps2_mcycle = 0;
-static uint8_t ps2_mpkt[3];
+static uint8_t ps2_e0 = 0;
+static uint8_t ps2_mbtn = 0, ps2_mcycle = 0, ps2_pkt_len = 3;
+static int8_t  ps2_mz = 0;
+static uint8_t ps2_mpkt[4];
 
 static void ps2_wait_write(void) {
     for (int i = 0; i < 100000; i++) if (!(inb(0x64) & 2)) return;
@@ -75,6 +77,15 @@ static void ps2_mouse_init(void) {
     ps2_wait_write(); outb(0x64, 0xD4);
     ps2_wait_write(); outb(0x60, 0xF6);
     ps2_wait_read();  (void)inb(0x60);
+    /* IntelliMouse scroll-wheel magic rate sequence: 200, 100, 80 */
+    uint8_t rates[3] = { 200, 100, 80 };
+    for (int r = 0; r < 3; r++) {
+        ps2_wait_write(); outb(0x64, 0xD4); ps2_wait_write(); outb(0x60, 0xF3); ps2_wait_read(); (void)inb(0x60);
+        ps2_wait_write(); outb(0x64, 0xD4); ps2_wait_write(); outb(0x60, rates[r]); ps2_wait_read(); (void)inb(0x60);
+    }
+    ps2_wait_write(); outb(0x64, 0xD4); ps2_wait_write(); outb(0x60, 0xF2); ps2_wait_read(); (void)inb(0x60);
+    ps2_wait_read();
+    ps2_pkt_len = (inb(0x60) == 3) ? 4 : 3;
     ps2_wait_write(); outb(0x64, 0xD4);
     ps2_wait_write(); outb(0x60, 0xF4);
     ps2_wait_read();  (void)inb(0x60);
@@ -82,13 +93,15 @@ static void ps2_mouse_init(void) {
 void bios_poll_input(InputState *state) {
     state->key_char = 0;
     state->scan_code = 0;
+    state->scroll_z = 0;
+    ps2_mz = 0;
     while (inb(0x64) & 1) {
         uint8_t status = inb(0x64);
         uint8_t data   = inb(0x60);
         if (status & 0x20) {
             if (ps2_mcycle == 0 && !(data & 0x08)) continue;
             ps2_mpkt[ps2_mcycle++] = data;
-            if (ps2_mcycle == 3) {
+            if (ps2_mcycle == ps2_pkt_len) {
                 ps2_mcycle = 0;
                 ps2_mbtn = ps2_mpkt[0] & 0x07;
                 int32_t dx = (int32_t)ps2_mpkt[1] - ((ps2_mpkt[0] & 0x10) ? 256 : 0);
@@ -96,6 +109,7 @@ void bios_poll_input(InputState *state) {
                 ps2_mx += dx; ps2_my -= dy;
                 if (ps2_mx < 0) ps2_mx = 0; if (ps2_mx > 799) ps2_mx = 799;
                 if (ps2_my < 0) ps2_my = 0; if (ps2_my > 599) ps2_my = 599;
+                if (ps2_pkt_len == 4) { int8_t dz = (int8_t)(ps2_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; ps2_mz += dz; }
             }
         } else if (!(data & 0x80)) {
             if (data == 0x01) state->scan_code = 0x17;
@@ -105,6 +119,8 @@ void bios_poll_input(InputState *state) {
     state->mouse_x = ps2_mx;
     state->mouse_y = ps2_my;
     state->left_click = (ps2_mbtn & 1) ? 1 : 0;
+    state->mouse_btns = ps2_mbtn & 0x07;
+    state->scroll_z = ps2_mz;
 }
 
 void bios_sleep_ms(uint32_t ms) {
@@ -147,5 +163,8 @@ void bios_entry(VesaModeInfo *vesa) {
 
 
 uint32_t g_mouse_dbg = 0;
+
+
+
 
 

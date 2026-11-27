@@ -4,6 +4,8 @@
 typedef struct {
     int mouse_x, mouse_y;
     uint8_t left_click;
+    uint8_t mouse_btns;
+    int8_t scroll_z;
     char key_char;
     uint16_t scan_code;
 } InputState;
@@ -21,3 +23,5 @@ typedef struct {
 } BootInfo;
 
 void kernel_main(BootInfo *info);
+
+
