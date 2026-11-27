@@ -41,14 +41,16 @@ void paging_init(BootInfo *info) {
     uint64_t cr3 = (uint64_t)(uintptr_t)pml4;
     uint64_t cr0;
     __asm__ volatile ("movq %%cr0, %0" : "=r"(cr0));
-    cr0 = (cr0 & ~((1ULL << 2) | (1ULL << 3))) | (1ULL << 1);
+    cr0 = (cr0 & ~((1ULL << 2) | (1ULL << 3))) | (1ULL << 1) | (1ULL << 16);
     __asm__ volatile ("movq %0, %%cr0" : : "r"(cr0));
     uint64_t cr4;
     __asm__ volatile ("movq %%cr4, %0" : "=r"(cr4));
     cr4 |= (1ULL << 7) | (1ULL << 9) | (1ULL << 10);
     __asm__ volatile ("movq %0, %%cr4" : : "r"(cr4));
+    uint32_t elo, ehi; __asm__ volatile ("rdmsr" : "=a"(elo), "=d"(ehi) : "c"(0xC0000080U)); elo |= (1U << 11); __asm__ volatile ("wrmsr" : : "c"(0xC0000080U), "a"(elo), "d"(ehi));
     __asm__ volatile ("movq %0, %%cr3" : : "r"(cr3) : "memory");
 }
+
 
 
 

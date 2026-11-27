@@ -81,3 +81,19 @@ void *realloc(void *ptr, size_t size) {
     free(ptr);
     return np;
 }
+
+void kheap_stats(size_t *total_b, size_t *used_b, size_t *free_b, size_t *used_cnt, size_t *free_cnt) {
+    heap_init_once();
+    size_t ub = 0, fb = 0, uc = 0, fc = 0;
+    BlockHdr *cur = heap_head;
+    while (cur) {
+        if (cur->free) { fb += cur->size; fc++; }
+        else { ub += cur->size + sizeof(BlockHdr); uc++; }
+        cur = cur->next;
+    }
+    if (total_b) *total_b = HEAP_SIZE;
+    if (used_b)  *used_b  = ub;
+    if (free_b)  *free_b  = fb;
+    if (used_cnt) *used_cnt = uc;
+    if (free_cnt) *free_cnt = fc;
+}

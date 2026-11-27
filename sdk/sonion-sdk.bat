@@ -20,9 +20,10 @@ if /i "%~x1"==".cpp" (
 )
 if errorlevel 1 exit /b 1
 
-ld --disable-dynamicbase --image-base 0x0 -T "%SDK_DIR%lib\child.ld" -o "%TEMP%\sonion_app.elf" "%SDK_DIR%lib\crt0.o" "%TEMP%\sonion_app.o" "%SDK_DIR%lib\stdio.o" "%SDK_DIR%lib\time.o" "%SDK_DIR%lib\memory.o" "%SDK_DIR%lib\string.o" "%SDK_DIR%lib\stdlib.o" "%SDK_DIR%lib\math.o" "%SDK_DIR%lib\setjmp.o" "%SDK_DIR%lib\locale_signal.o"
+ld --disable-dynamicbase --image-base 0x0 -T "%SDK_DIR%lib\child.ld" -o "%TEMP%\sonion_app.elf" "%SDK_DIR%lib\crt0.o" "%SDK_DIR%lib\img.o" "%TEMP%\sonion_app.o" "%SDK_DIR%lib\stdio.o" "%SDK_DIR%lib\time.o" "%SDK_DIR%lib\memory.o" "%SDK_DIR%lib\string.o" "%SDK_DIR%lib\stdlib.o" "%SDK_DIR%lib\math.o" "%SDK_DIR%lib\setjmp.o" "%SDK_DIR%lib\locale_signal.o"
 if errorlevel 1 exit /b 1
 
 objcopy -O binary "%TEMP%\sonion_app.elf" "%OUT%"
 if errorlevel 1 exit /b 1
 echo [SONION-SDK] Built Ring 3 .SON executable: %OUT%
+

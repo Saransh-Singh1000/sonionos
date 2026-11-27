@@ -123,7 +123,20 @@ static inline int sys_kill(int pid) {
 static inline int sys_spawn_bg(const char *name) {
     return (int)syscall3(32, (uint64_t)name, 0, 0);
 }
+static inline int sys_kmem(uint64_t out7[7]) { return (int)syscall3(33, (uint64_t)out7, 0, 0); }
+typedef struct {
+    uint8_t scancode;
+    uint8_t pressed; /* 1 = Key-Down, 0 = Key-Up */
+    char    ascii;
+    uint8_t reserved;
+} SonionKeyEvent;
+
+static inline int sys_poll_key(SonionKeyEvent *ev) {
+    return (int)syscall3(34, (uint64_t)ev, 0, 0);
+}
 #endif
+
+
 
 
 

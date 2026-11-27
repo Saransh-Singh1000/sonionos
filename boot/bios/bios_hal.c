@@ -1,3 +1,4 @@
+#include "kbd_events.h"
 #include <stdint.h>
 #include "bootinfo.h"
 
@@ -146,4 +147,5 @@ void bios_entry(VesaModeInfo *vesa) {
 
 
 uint32_t g_mouse_dbg = 0;
+
 

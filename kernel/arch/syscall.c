@@ -1,3 +1,6 @@
+#include "kbd_events.h"
+#include <stddef.h>
+extern void kheap_stats(size_t *total_b, size_t *used_b, size_t *free_b, size_t *used_cnt, size_t *free_cnt);
 #include "sched.h"
 #include "arch/syscall.h"
 #include "arch/gdt.h"
@@ -37,6 +40,12 @@ static inline void wrmsr(uint32_t msr, uint64_t val) {
     __asm__ volatile ("wrmsr" : : "c"(msr), "a"((uint32_t)val), "d"((uint32_t)(val >> 32)));
 }
 
+static int user_ptr_ok(const void *ptr, size_t len) {
+    uint64_t p = (uint64_t)(uintptr_t)ptr;
+    if (!p || p < USER_BASE_ADDR || p >= USER_LIMIT_ADDR) return 0;
+    if (len > (USER_LIMIT_ADDR - p)) return 0;
+    return 1;
+}
 static void sys_hw_reboot(void) {
     __asm__ volatile ("cli");
     __asm__ volatile ("outb %0, %1" : : "a"((uint8_t)0x06), "Nd"((uint16_t)0xCF9));
@@ -190,7 +199,7 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             if (sc_info && sc_info->shutdown) sc_info->shutdown();
             return 0;
         case SYS_DISK_INFO: {
-            uint64_t *out = (uint64_t *)a1;
+            if (!user_ptr_ok((void *)a1, 7 * sizeof(uint64_t))) return (uint64_t)-14; uint64_t *out = (uint64_t *)a1;
             if (out) {
                 out[0] = block_get_sector_count();
                 out[1] = (uint64_t)fat32_is_mounted();
@@ -216,7 +225,7 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
         }
         case 30: { /* SYS_PS: copy compact task list to user buffer */
             typedef struct { int pid, state, cpl; uint32_t mem_kb; uint64_t ticks; char name[24]; } UserTask;
-            UserTask *out = (UserTask *)a1;
+            if (!user_ptr_ok((void *)a1, sizeof(UserTask) * (size_t)a2)) return (uint64_t)-14; UserTask *out = (UserTask *)a1;
             int max = (int)a2, n = 0;
             for (int i = 0; i < MAX_TASKS && n < max; i++) {
                 TaskInfo *t = sched_get(i);
@@ -234,6 +243,23 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             return (uint64_t)(int64_t)sched_kill((int)a1);
         case 32: /* SYS_SPAWN_BG */
             return (uint64_t)(int64_t)sched_register_task((const char *)a1, 3, 256);
+        case 33: { /* SYS_KMEM: Ring 0 Kernel RAM Telemetry */
+            if (!user_ptr_ok((void *)a1, 7 * sizeof(uint64_t))) return (uint64_t)-14; uint64_t *out = (uint64_t *)a1;
+            size_t tb = 0, ub = 0, fb = 0, uc = 0, fc = 0;
+            kheap_stats(&tb, &ub, &fb, &uc, &fc);
+            out[0] = tb; /* Kernel heap total bytes */
+            out[1] = ub; /* Kernel heap allocated bytes */
+            out[2] = fb; /* Kernel heap free bytes */
+            out[3] = uc; /* Active kernel heap blocks */
+            out[4] = fc; /* Free kernel heap blocks */
+            out[5] = (sc_info ? (uint64_t)sc_info->width * sc_info->height * 4ULL : 0); /* Kernel backbuffer */
+            out[6] = 56 * 1024ULL; /* Ring 0 kernel + IST1 + scheduler stacks */
+            return 0;
+        }
+        case 34: { /* SYS_KEY_EVENT: pop Key-Down / Key-Up event */
+            if (!user_ptr_ok((void *)a1, sizeof(KeyEvent))) return (uint64_t)-14;
+            return (uint64_t)kbd_pop_event((KeyEvent *)a1);
+        }
         default:
             return (uint64_t)-1LL;
     }
@@ -375,6 +401,10 @@ void ring3_fault_recover(uint64_t exc, uint64_t rip, uint64_t cr2) {
     r3_exit_code[d] = -(int)(128 + exc);
     longjmp(r3_ret_jmp[d], 1);
 }
+
+
+
+
 
 
 

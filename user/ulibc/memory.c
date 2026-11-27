@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 
-#define UHEAP_BASE 0x01800000ULL
-#define UHEAP_SIZE (16ULL * 1016ULL * 1016ULL)
+#define UHEAP_BASE 0x04000000ULL
+#define UHEAP_SIZE (48ULL * 1024ULL * 1024ULL)
 
 typedef struct BlockHdr {
     size_t size;
@@ -77,4 +77,5 @@ void *realloc(void *ptr, size_t size) {
     free(ptr);
     return np;
 }
+
 

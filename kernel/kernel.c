@@ -9,6 +9,7 @@
 #include "panic.h"
 #include "console.h"
 #include "desktop.h"
+#include "splash.h"
 #include "sched.h"
 #include "blockdev.h"
 #include "fs/fat32.h"
@@ -41,6 +42,7 @@ void kernel_main(BootInfo *info) {
     panic_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
 
+    boot_splash_show(info, backbuf);
     desktop_init(info, backbuf);
     sched_init();
     console_init(info, backbuf, 2);
@@ -59,6 +61,7 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
 
 
 

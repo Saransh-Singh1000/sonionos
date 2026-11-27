@@ -48,8 +48,8 @@ UFLAGS=(
     -U_WIN32
     -U_WIN64
     -Iuser
-    -Ikernel/include
-    -Ikernel/include/libc
+    -DSONION_KERNEL -Ikernel/include -Ilib/include
+    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc
     -Iuser/lua
 )
 
@@ -79,16 +79,16 @@ echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
 
 KSRCS=(
     kernel/kernel.c
-    kernel/sched.c
+    kernel/sched.c kernel/kbd_events.c
     kernel/gfx.c
-    kernel/desktop.c
+    kernel/desktop.c kernel/splash.c
     kernel/panic.c
     kernel/console.c
     kernel/arch/gdt.c
     kernel/arch/paging.c
     kernel/arch/syscall.c
     kernel/libc/string.c
-    kernel/libc/memory.c
+    kernel/libc/memory.c lib/img/img.c
     kernel/libc/setjmp.c
     kernel/libc/time.c
     kernel/drivers/blockdev.c
@@ -99,6 +99,8 @@ KSRCS=(
     kernel/drivers/usb_msc.c
     kernel/fs/fat32.c
 )
+
+python3 scripts/embed_logo.py
 
 echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 
@@ -111,8 +113,8 @@ echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
     -nostdlib \
     -Wl,--subsystem,10 \
     -e efi_main \
-    -Ikernel/include \
-    -Ikernel/include/libc \
+    -DSONION_KERNEL -Ikernel/include -Ilib/include \
+    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc \
     boot/uefi/main.c \
     "${KSRCS[@]}" \
     -o disk/EFI/BOOT/BOOTX64.EFI
@@ -136,8 +138,8 @@ if command -v nasm >/dev/null 2>&1; then
             -mno-red-zone \
             -mno-avx \
             -fno-tree-loop-distribute-patterns \
-            -Ikernel/include \
-            -Ikernel/include/libc \
+            -DSONION_KERNEL -Ikernel/include -Ilib/include \
+            -DSONION_KERNEL -Ikernel/include -Ilib/include/libc \
             -c "$src" \
             -o "build/$name.o"
     done
@@ -148,16 +150,16 @@ if command -v nasm >/dev/null 2>&1; then
         build/entry64.o \
         build/bios_hal.o \
         build/kernel.o \
-        build/sched.o \
+        build/sched.o build/kbd_events.o \
         build/gfx.o \
-        build/desktop.o \
+        build/desktop.o build/splash.o \
         build/panic.o \
         build/console.o \
         build/gdt.o \
         build/paging.o \
         build/syscall.o \
         build/string.o \
-        build/memory.o \
+        build/memory.o build/img.o \
         build/setjmp.o \
         build/time.o \
         build/blockdev.o \
@@ -184,7 +186,7 @@ if [ "${1:-}" = "iso" ]; then
 elif [ "${1:-}" = "bios" ]; then
     "$QEMU" \
         -cpu max \
-        -m 256M \
+        -m 512M \
         -drive file=build/sonionos_bios.img,format=raw,if=ide,index=0 \
         -drive file=fat:rw:disk,format=raw,if=ide,index=1 \
         -display sdl,grab-mod=lctrl-lalt \
@@ -196,7 +198,7 @@ else
     fi
     "$QEMU" \
         -cpu max \
-        -m 256M \
+        -m 512M \
         -drive if=pflash,format=raw,readonly=on,file="$BIOS_FD" \
         -drive file=fat:rw:disk,format=raw \
         -display sdl,grab-mod=lctrl-lalt \
