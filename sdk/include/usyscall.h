@@ -118,7 +118,15 @@ typedef struct {
 static inline int sys_poll_key(SonionKeyEvent *ev) {
     return (int)syscall3(34, (uint64_t)ev, 0, 0);
 }
+static inline int sys_audio_write(const void *pcm_48k_stereo, size_t bytes) {
+    return (int)syscall3(35, 1, (uint64_t)pcm_48k_stereo, (uint64_t)bytes);
+}
+static inline int sys_audio_info(char *name_buf, size_t max_len) {
+    return (int)syscall3(35, 2, (uint64_t)name_buf, (uint64_t)max_len);
+}
 #endif
+
+
 
 
 

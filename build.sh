@@ -48,8 +48,8 @@ UFLAGS=(
     -U_WIN32
     -U_WIN64
     -Iuser
-    -DSONION_KERNEL -Ikernel/include -Ilib/include
-    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc
+    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include
+    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc
     -Iuser/lua
 )
 
@@ -92,7 +92,7 @@ KSRCS=(
     kernel/libc/setjmp.c
     kernel/libc/time.c
     kernel/drivers/blockdev.c
-    kernel/drivers/pci.c
+    kernel/drivers/pci.c kernel/drivers/audio.c
     kernel/drivers/nvme.c
     kernel/drivers/ahci.c
     kernel/drivers/ata.c
@@ -113,8 +113,8 @@ echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
     -nostdlib \
     -Wl,--subsystem,10 \
     -e efi_main \
-    -DSONION_KERNEL -Ikernel/include -Ilib/include \
-    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc \
+    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include \
+    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc \
     boot/uefi/main.c \
     "${KSRCS[@]}" \
     -o disk/EFI/BOOT/BOOTX64.EFI
@@ -138,8 +138,8 @@ if command -v nasm >/dev/null 2>&1; then
             -mno-red-zone \
             -mno-avx \
             -fno-tree-loop-distribute-patterns \
-            -DSONION_KERNEL -Ikernel/include -Ilib/include \
-            -DSONION_KERNEL -Ikernel/include -Ilib/include/libc \
+            -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include \
+            -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc \
             -c "$src" \
             -o "build/$name.o"
     done
@@ -163,7 +163,7 @@ if command -v nasm >/dev/null 2>&1; then
         build/setjmp.o \
         build/time.o \
         build/blockdev.o \
-        build/pci.o \
+        build/pci.o build/audio.o \
         build/nvme.o \
         build/ahci.o \
         build/ata.o \
@@ -186,7 +186,7 @@ if [ "${1:-}" = "iso" ]; then
 elif [ "${1:-}" = "bios" ]; then
     "$QEMU" \
         -cpu max \
-        -m 512M \
+        -m 512M -audiodev sdl,id=snd0 -device AC97,audiodev=snd0 \
         -drive file=build/sonionos_bios.img,format=raw,if=ide,index=0 \
         -drive file=fat:rw:disk,format=raw,if=ide,index=1 \
         -display sdl,grab-mod=lctrl-lalt \
@@ -198,7 +198,7 @@ else
     fi
     "$QEMU" \
         -cpu max \
-        -m 512M \
+        -m 512M -audiodev sdl,id=snd0 -device AC97,audiodev=snd0 \
         -drive if=pflash,format=raw,readonly=on,file="$BIOS_FD" \
         -drive file=fat:rw:disk,format=raw \
         -display sdl,grab-mod=lctrl-lalt \

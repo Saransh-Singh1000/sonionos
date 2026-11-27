@@ -1,3 +1,4 @@
+#include "audio.h"
 #include "kbd_events.h"
 #include <stddef.h>
 extern void kheap_stats(size_t *total_b, size_t *used_b, size_t *free_b, size_t *used_cnt, size_t *free_cnt);
@@ -96,6 +97,8 @@ static int dev_open_path(const char *p) {
         if (strcmp(n, "kbd") == 0)   return 102;
         if (strcmp(n, "mouse") == 0) return 103;
         if (strcmp(n, "fb0") == 0)   { dev_fb_pos = 0; return 104; }
+        if (strcmp(n, "dsp") == 0 || strcmp(n, "audio") == 0) return 105;
+        if (strcmp(n, "speaker") == 0) return 106;
     }
     return -1;
 }
@@ -128,6 +131,14 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
         case SYS_READ: {
             if ((int)a1 == 100) return 0;
             if ((int)a1 == 101) { if (a2 && a3) memset((void *)a2, 0, (size_t)a3); return a3; }
+            if ((int)a1 == 105) {
+                if (!user_ptr_ok((void *)a2, (size_t)a3) || a3 == 0) return 0;
+                const char *nm = audio_backend_name();
+                char *dst = (char *)a2; size_t i = 0;
+                while (nm[i] && i + 1 < (size_t)a3) { dst[i] = nm[i]; i++; }
+                dst[i] = 0;
+                return (uint64_t)i;
+            }
             if ((int)a1 == 102 || (int)a1 == 103) {
                 InputState st; memset(&st, 0, sizeof(st));
                 if (sc_info && sc_info->poll_input) sc_info->poll_input(&st);
@@ -154,6 +165,16 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
         case SYS_FWRITE:
             if ((int)a1 == 100) return a3;
             if ((int)a1 == 104) { uint64_t w = kernel_dev_fb_write(dev_fb_pos, (const void *)a2, a3); dev_fb_pos += w; return w; }
+            if ((int)a1 == 105) {
+                if (!user_ptr_ok((void *)a2, (size_t)a3)) return 0;
+                return (uint64_t)audio_write_pcm((const void *)a2, (size_t)a3);
+            }
+            if ((int)a1 == 106) {
+                if (!user_ptr_ok((void *)a2, 8) || a3 < 8) return 0;
+                const uint32_t *tone = (const uint32_t *)a2;
+                speaker_beep(tone[0], tone[1]);
+                return 8;
+            }
             if (a1 >= 32 || !fd_tab[a1]) return 0;
             return (uint64_t)fat32_write((const void *)a2, 1, (size_t)a3, fd_tab[a1]);
         case SYS_SEEK:
@@ -401,6 +422,8 @@ void ring3_fault_recover(uint64_t exc, uint64_t rip, uint64_t cr2) {
     r3_exit_code[d] = -(int)(128 + exc);
     longjmp(r3_ret_jmp[d], 1);
 }
+
+
 
 
 

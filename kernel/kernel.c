@@ -1,3 +1,4 @@
+#include "audio.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -43,6 +44,7 @@ void kernel_main(BootInfo *info) {
     panic_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
 
+    audio_init();
     boot_splash_show(info, backbuf);
     desktop_init(info, backbuf);
     sched_init();
@@ -62,6 +64,7 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
 
 
 
