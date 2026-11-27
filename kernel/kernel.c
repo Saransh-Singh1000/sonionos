@@ -36,9 +36,9 @@ uint64_t kernel_dev_fb_write(uint64_t offset, const void *buf, uint64_t len) {
 void kernel_main(BootInfo *info) {
     g_info = info;
     gdt_init();
+    panic_init(info);
     paging_init(info);
     syscall_init(info);
-    panic_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
 
     desktop_init(info, backbuf);
@@ -46,7 +46,10 @@ void kernel_main(BootInfo *info) {
     console_init(info, backbuf, 2);
     console_set_flush(swap_buffers);
     block_init(info);
-    fat32_init();
+    int fs_ok = fat32_init();
+    console_set_color(0x0000FF00, 0x00090D16);
+    console_puts(fs_ok ? "[FS] Mount successful" : "[FS] Mount FAILED");
+    console_flush_now();
 
     console_set_color(0x0038BDF8, 0x00090D16);
     console_puts("[KERNEL] Ring 0 Ready -> Launching /USER/INIT.BIN in Ring 3...");

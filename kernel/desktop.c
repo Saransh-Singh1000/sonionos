@@ -80,6 +80,44 @@ static void draw_window(void) {
                   0x00090D16);
 }
 
+
+/* Left-side open application switcher */
+static void draw_open_apps(void) {
+    if (!d_info) return;
+
+    int cy = (int)d_info->height / 2;
+    int radius = 76;
+
+    /* Draw a semicircle attached to the left screen edge */
+    for (int dy = -radius; dy <= radius; dy++) {
+        int span = 0;
+        while ((span + 1) * (span + 1) + dy * dy
+               <= radius * radius)
+            span++;
+
+        int y = cy + dy;
+        if (y < 0 || y >= (int)d_info->height) continue;
+
+        gfx_fill_rect(0, y, span + 1, 1, 0x0018273D);
+
+        /* Curved outer edge */
+        gfx_pixel(span, y, 0x0038BDF8);
+    }
+
+    /* Console app tab */
+    int ix = 14;
+    int iy = cy - 20;
+
+    gfx_fill_rect(ix, iy, 40, 40, 0x0038BDF8);
+    gfx_rect(ix, iy, 40, 40, 0x00E2E8F0);
+
+    /* Simple terminal symbol */
+    gfx_fill_rect(ix + 8, iy + 9, 24, 22, 0x00090D16);
+    gfx_fill_rect(ix + 12, iy + 15, 8, 2, 0x00FFFFFF);
+    gfx_fill_rect(ix + 18, iy + 19, 2, 7, 0x00FFFFFF);
+    gfx_fill_rect(ix + 18, iy + 24, 8, 2, 0x00FFFFFF);
+}
+
 static void draw_scene(void) {
     uint32_t w = d_info->width;
     uint32_t h = d_info->height;
@@ -144,6 +182,7 @@ static void draw_scene(void) {
     }
 
     draw_window();
+    draw_open_apps();
 }
 
 void desktop_console_bounds(int *x, int *y, int *w, int *h) {
@@ -242,6 +281,15 @@ void desktop_update(const InputState *input) {
         int dock_x = ((int)d_info->width -
                      ((d_info->width > 440) ? 400 :
                       (int)d_info->width - 32)) / 2;
+
+        /* Left-side app switcher: restore Console */
+        int switch_y = (int)d_info->height / 2 - 24;
+        if (inside(mouse_x, mouse_y, 8, switch_y, 52, 48)) {
+            win_open = 1;
+            win_minimized = 0;
+            win_focused = 1;
+            dragging = 0;
+        }
 
         /* Restore console from its dock icon */
         if (inside(mouse_x, mouse_y,
