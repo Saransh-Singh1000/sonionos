@@ -109,23 +109,6 @@ void uefi_poll_input(InputState *state) {
             if (ms.LeftButton) state->left_click = 1;
         }
     }
-    while (u_inb(0x64) & 1) {
-        uint8_t status = u_inb(0x64);
-        if (!(status & 0x20)) break; /* leave keyboard byte for UEFI ConIn! */
-        uint8_t data = u_inb(0x60);
-        if (uefi_mcycle == 0 && !(data & 0x08)) continue;
-        uefi_mpkt[uefi_mcycle++] = data;
-        if (uefi_mcycle == 3) {
-            uefi_mcycle = 0;
-            uefi_mbtn = uefi_mpkt[0] & 0x07;
-            int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
-            int32_t dy = (int32_t)uefi_mpkt[2] - ((uefi_mpkt[0] & 0x20) ? 256 : 0);
-            cur_mx += dx; cur_my -= dy;
-            if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
-            if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
-        }
-    }
-    if (uefi_mbtn & 1) state->left_click = 1;
     state->mouse_x = cur_mx;
     state->mouse_y = cur_my;
 }

@@ -4,6 +4,7 @@ setlocal
 if not exist "build" mkdir "build"
 if not exist "disk\EFI\BOOT" mkdir "disk\EFI\BOOT"
 if not exist "disk\USER" mkdir "disk\USER"
+if exist "assets\WALLPAPER.BIN" copy /Y "assets\WALLPAPER.BIN" "disk\WALLPAPER.BIN" >nul
 
 set UFLAGS=-O2 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -U_WIN32 -U_WIN64 -Iuser -Ikernel\include -Ikernel\include\libc -Iuser\lua
 set USRCS=user\init.c user\ulibc\stdio.c user\ulibc\time.c user\ulibc\memory.c kernel\libc\string.c kernel\libc\stdlib.c kernel\libc\math.c kernel\libc\setjmp.c kernel\libc\locale_signal.c user\lua_runner.c
@@ -14,7 +15,7 @@ if errorlevel 1 goto :error
 objcopy -O binary build\init.elf disk\USER\INIT.BIN
 if errorlevel 1 goto :error
 
-set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\blockdev.c kernel\drivers\nvme.c kernel\drivers\pci.c kernel\drivers\usb_msc.c kernel\fs\fat32.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\string.c kernel\libc\time.c kernel\console.c kernel\desktop.c kernel\gfx.c kernel\kernel.c kernel\panic.c
+set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\blockdev.c kernel\drivers\nvme.c kernel\drivers\pci.c kernel\drivers\usb_msc.c kernel\fs\fat32.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\string.c kernel\libc\time.c kernel\console.c kernel\desktop.c kernel\gfx.c kernel\wallpaper.c kernel\kernel.c kernel\sched.c kernel\panic.c
 
 echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===
 gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %KSRCS% -o disk\EFI\BOOT\BOOTX64.EFI
@@ -33,7 +34,7 @@ if %errorlevel%==0 (
         if errorlevel 1 goto :error
     )
 
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\usb_msc.o build\fat32.o build\memory.o build\setjmp.o build\string.o build\time.o build\console.o build\desktop.o build\gfx.o build\kernel.o build\panic.o
+    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\usb_msc.o build\fat32.o build\memory.o build\setjmp.o build\string.o build\time.o build\console.o build\desktop.o build\gfx.o build\kernel.o build\sched.o build\panic.o
     if errorlevel 1 goto :error
 
     python scripts\build_flat.py
@@ -67,6 +68,7 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
 
 
 

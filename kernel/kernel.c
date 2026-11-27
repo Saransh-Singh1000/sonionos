@@ -9,8 +9,10 @@
 #include "panic.h"
 #include "console.h"
 #include "desktop.h"
+#include "sched.h"
 #include "blockdev.h"
 #include "fs/fat32.h"
+#include "wallpaper.h"
 
 static BootInfo *g_info = 0;
 static uint32_t * const backbuf = (uint32_t *)0x00400000ULL;
@@ -35,17 +37,23 @@ uint64_t kernel_dev_fb_write(uint64_t offset, const void *buf, uint64_t len) {
 void kernel_main(BootInfo *info) {
     g_info = info;
     gdt_init();
+    panic_init(info);
     paging_init(info);
     syscall_init(info);
-    panic_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
 
-    block_init(info);
-    fat32_init();
-
     desktop_init(info, backbuf);
+    sched_init();
     console_init(info, backbuf, 2);
     console_set_flush(swap_buffers);
+    block_init(info);
+    int fs_ok = fat32_init();
+    if (fs_ok && wallpaper_load("/WALLPAPER.BIN") == 0) {
+        desktop_refresh();
+    }
+    console_set_color(0x0000FF00, 0x00090D16);
+    console_puts(fs_ok ? "[FS] Mount successful" : "[FS] Mount FAILED");
+    console_flush_now();
 
     console_set_color(0x0038BDF8, 0x00090D16);
     console_puts("[KERNEL] Ring 0 Ready -> Launching /USER/INIT.BIN in Ring 3...");
@@ -58,5 +66,6 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
 
 

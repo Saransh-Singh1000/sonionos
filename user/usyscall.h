@@ -107,7 +107,25 @@ static inline uint16_t get_current_cpl(void) {
     return cs & 3;
 }
 
+typedef struct {
+    int pid, state, cpl;
+    uint32_t mem_kb;
+    uint64_t ticks;
+    char name[24];
+} UserTaskInfo;
+
+static inline int sys_ps(UserTaskInfo *buf, int max) {
+    return (int)syscall3(30, (uint64_t)buf, (uint64_t)max, 0);
+}
+static inline int sys_kill(int pid) {
+    return (int)syscall3(31, (uint64_t)pid, 0, 0);
+}
+static inline int sys_spawn_bg(const char *name) {
+    return (int)syscall3(32, (uint64_t)name, 0, 0);
+}
 #endif
+
+
 
 
 

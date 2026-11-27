@@ -6,7 +6,7 @@
 #include "usyscall.h"
 #include "lua_runner.h"
 
-static char cwd[256] = "/";
+static char cwd[256] = "/USER";
 
 static void resolve_path(const char *in, char *out, size_t out_sz) {
     char tmp[256];
@@ -116,7 +116,7 @@ static void shell_exec(char *cmdline) {
         printf("%s\n", cwd);
     } else if (!strcmp(cmd, "cd")) {
         char target[256];
-        resolve_path(*args ? args : "/", target, sizeof(target));
+        resolve_path(*args ? args : "/USER", target, sizeof(target));
         if (!strcmp(target, "/")) { strcpy(cwd, "/"); return; }
         int dd = sys_opendir(target);
         if (dd < 0) { printf("cd: %s: No such directory\n", args); return; }
@@ -204,6 +204,28 @@ static void shell_exec(char *cmdline) {
         printf("Driver: %s | FS: %s (%s) | Size: %llu MB\n",
                (char *)(di + 2), di[1] ? "MOUNTED" : "NONE",
                (char *)(di + 4), (unsigned long long)mb);
+    } else if (!strcmp(cmd, "ps")) {
+        UserTaskInfo list[8];
+        int n = sys_ps(list, 8);
+        printf("PID  STATE    RING  TICKS     MEM      COMMAND\n");
+        for (int i = 0; i < n; i++) {
+            const char *st = (list[i].state == 1) ? "RUNNING" : "READY  ";
+            printf("%-4d %s  CPL%d  %-8llu  %-5uKB  %s\n",
+                   list[i].pid, st, list[i].cpl,
+                   (unsigned long long)list[i].ticks, list[i].mem_kb, list[i].name);
+        }
+    } else if (!strcmp(cmd, "kill")) {
+        int pid = atoi(args);
+        if (sys_kill(pid) == 0) printf("[SCHED] Killed PID %d\n", pid);
+        else printf("[SCHED] Cannot kill PID %d (protected or not found)\n", pid);
+    } else if (args[0] == '&') {
+        int pid = sys_spawn_bg(cmd);
+        if (pid > 0) printf("[SCHED] Started background task '%s' (PID %d)\n", cmd, pid);
+        else printf("[SCHED] Task table full!\n");
+    } else if (strlen(cmd) > 4 && (!strcasecmp(cmd + strlen(cmd) - 4, ".son") || !strcasecmp(cmd + strlen(cmd) - 4, ".bin"))) {
+        char t[256]; resolve_path(cmd, t, sizeof(t));
+        int rc = sys_exec(t);
+        printf("[Ring 3 .SON exited: %d]\n", rc);
     } else if (!strcmp(cmd, "lua")) {
         if (!*args) printf("Usage: lua <script.lua>\n");
         else {
@@ -244,5 +266,7 @@ void _start(void) {
     }
     sys_exit(0);
 }
+
+
 
 

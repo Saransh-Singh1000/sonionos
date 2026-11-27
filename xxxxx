@@ -1,0 +1,102 @@
+[1mdiff --cc build.bat[m
+[1mindex 8c35eb9,7afc6d2..0000000[m
+[1m--- a/build.bat[m
+[1m+++ b/build.bat[m
+[36m@@@ -3,14 -3,45 +3,49 @@@[m [msetloca[m
+  [m
+  if not exist "build" mkdir "build"[m
+  if not exist "disk\EFI\BOOT" mkdir "disk\EFI\BOOT"[m
+[32m+ if not exist "disk\USER" mkdir "disk\USER"[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +set SRCS=kernel\kernel.c kernel\panic.c kernel\console.c kernel\shell.c kernel\sed.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\stdlib.c kernel\libc\setjmp.c kernel\libc\math.c kernel\libc\stdio.c kernel\libc\time.c kernel\libc\locale_signal.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c[m
+[32m++=======[m
+[32m+ set UFLAGS=-O2 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -U_WIN32 -U_WIN64 -Iuser -Ikernel\include -Ikernel\include\libc -Iuser\lua[m
+[32m+ set USRCS=user\init.c user\ulibc\stdio.c user\ulibc\time.c user\ulibc\memory.c kernel\libc\string.c kernel\libc\stdlib.c kernel\libc\math.c kernel\libc\setjmp.c kernel\libc\locale_signal.c user\lua_runner.c[m
+[32m++>>>>>>> origin/main[m
+  [m
+[31m- echo === [1/3] Compiling Shared Kernel and UEFI Target ===[m
+[31m- gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %SRCS% -o disk\EFI\BOOT\BOOTX64.EFI[m
+[32m+ echo === [1/4] Compiling Ring 3 User-Mode INIT.BIN ===[m
+[32m+ gcc %UFLAGS% %USRCS% user\lua\*.c -nostdlib "-Wl,--disable-dynamicbase,--image-base,0x0,-T,user\user.ld" -o build\init.elf[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ objcopy -O binary build\init.elf disk\USER\INIT.BIN[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ [m
+[32m+ gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\hello_r3.c -o build\hello_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\hello_r3.elf build\hello_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ objcopy -O binary build\hello_r3.elf disk\USER\HELLO.BIN[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ [m
+[32m+ gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\crash_r3.c -o build\crash_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\crash_r3.elf build\crash_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ objcopy -O binary build\crash_r3.elf disk\USER\CRASH.BIN[m
+  if errorlevel 1 goto :error[m
+  [m
+[31m- echo === [2/3] Compiling Shared Kernel and Legacy BIOS Target ===[m
+[32m+ gcc -O2 -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -Ikernel\include -c user\bench_r3.c -o build\bench_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ ld --disable-dynamicbase --image-base 0x0 -T user\child.ld -o build\bench_r3.elf build\bench_r3.o[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ objcopy -O binary build\bench_r3.elf disk\USER\BENCH.BIN[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ [m
+[32m+ set KSRCS=kernel\kernel.c kernel\panic.c kernel\console.c kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\libc\string.c kernel\libc\memory.c kernel\libc\setjmp.c kernel\libc\time.c kernel\drivers\blockdev.c kernel\drivers\pci.c kernel\drivers\nvme.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\usb_msc.c kernel\fs\fat32.c[m
+[32m+ [m
+[32m+ echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===[m
+[32m+ gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %KSRCS% -o disk\EFI\BOOT\BOOTX64.EFI[m
+[32m+ if errorlevel 1 goto :error[m
+[32m+ [m
+[32m+ echo === [3/4] Compiling Thin Ring 0 Kernel (BIOS) ===[m
+  where nasm >nul 2>nul[m
+  if %errorlevel%==0 ([m
+      nasm -f bin boot\bios\boot.asm -o build\bios_boot.bin[m
+[36m@@@ -23,7 -54,7 +58,11 @@@[m
+          if errorlevel 1 goto :error[m
+      )[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\panic.o build\console.o build\shell.o build\sed.o build\string.o build\memory.o build\stdlib.o build\setjmp.o build\math.o build\stdio.o build\time.o build\locale_signal.o build\blockdev.o build\pci.o build\nvme.o build\ahci.o build\ata.o build\usb_msc.o build\fat32.o[m
+[32m++=======[m
+[32m+     ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\kernel.o build\panic.o build\console.o build\gdt.o build\paging.o build\syscall.o build\string.o build\memory.o build\setjmp.o build\time.o build\blockdev.o build\pci.o build\nvme.o build\ahci.o build\ata.o build\usb_msc.o build\fat32.o[m
+[32m++>>>>>>> origin/main[m
+      if errorlevel 1 goto :error[m
+  [m
+      python scripts\build_flat.py[m
+[1mdiff --cc kernel/console.c[m
+[1mindex 307b667,952a006..0000000[m
+[1m--- a/kernel/console.c[m
+[1m+++ b/kernel/console.c[m
+[36m@@@ -201,5 -194,4 +205,9 @@@[m [mint console_getchar(int blocking) [m
+      return -1;[m
+  }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +int console_get_cols(void) { return c_cols; }[m
+[32m +int console_get_rows(void) { return c_rows; }[m
+[32m++=======[m
+[32m+ [m
+[32m++>>>>>>> origin/main[m
+[1mdiff --cc kernel/include/console.h[m
+[1mindex 4541808,9b5c139..0000000[m
+[1m--- a/kernel/include/console.h[m
+[1m+++ b/kernel/include/console.h[m
+[36m@@@ -14,7 -14,8 +14,14 @@@[m [mvoid console_puts(const char *s)[m
+  void console_render(void);[m
+  int  console_getchar(int blocking);[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +void console_set_cursor(int x, int y);[m
+[32m +int console_get_cols(void);[m
+[32m +int console_get_rows(void);[m
+[32m++=======[m
+[32m+ void console_set_flush(void (*fn)(void));[m
+[32m+ void console_flush_now(void);[m
+[32m++>>>>>>> origin/main[m
+  #endif[m
+[32m+ [m
+[32m+ [m

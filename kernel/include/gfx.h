@@ -6,8 +6,10 @@
 
 void gfx_init(BootInfo *info, uint32_t *backbuf);
 void gfx_pixel(int x, int y, uint32_t color);
+void gfx_blend_pixel(int x, int y, uint32_t color, uint8_t alpha);
 void gfx_fill(uint32_t color);
 void gfx_fill_rect(int x, int y, int w, int h, uint32_t color);
 void gfx_rect(int x, int y, int w, int h, uint32_t color);
+void gfx_draw_image(const uint32_t *pixels, uint32_t image_width, uint32_t image_height, int x, int y, int width, int height);
 
 #endif

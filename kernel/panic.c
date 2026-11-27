@@ -207,7 +207,7 @@ static void set_idt_gate(int n, void (*handler)(void), uint16_t cs) {
     uint64_t addr = (uint64_t)(uintptr_t)handler;
     idt[n].offset_low  = (uint16_t)(addr & 0xFFFF);
     idt[n].selector    = cs;
-    idt[n].ist         = 0;
+    idt[n].ist         = (n == 2 || n == 8 || n == 12 || n == 13 || n == 14 || n == 18) ? 1 : 0;
     idt[n].type_attr   = 0x8E;
     idt[n].offset_mid  = (uint16_t)((addr >> 16) & 0xFFFF);
     idt[n].offset_high = (uint32_t)((addr >> 32) & 0xFFFFFFFF);
@@ -239,11 +239,13 @@ void panic_init(BootInfo *info) {
         set_idt_gate(i, handlers[i], cs);
     }
 
+    uint64_t cr4; __asm__ volatile ("mov %%cr4, %0" : "=r"(cr4)); cr4 |= (1ULL << 6) | (1ULL << 10); __asm__ volatile ("mov %0, %%cr4" : : "r"(cr4));
     IdtPtr idtr;
     idtr.limit = sizeof(idt) - 1;
     idtr.base  = (uint64_t)(uintptr_t)&idt[0];
     __asm__ volatile ("lidt %0" : : "m"(idtr));
 }
+
 
 
 
