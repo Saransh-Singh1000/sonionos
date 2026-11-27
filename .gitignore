@@ -1,8 +1,12 @@
-﻿# Build & Release Artifacts
+﻿@'
+# Build & Release Artifacts
 build/
-disk/
 *.o
+*.a
 *.bin
+*.BIN
+*.son
+*.SON
 *.elf
 *.efi
 *.EFI
@@ -10,7 +14,29 @@ disk/
 *.iso
 *.log
 
+# Keep Prebuilt SDK Runtime Objects & Lua Demo Scripts Tracked
+!sdk/lib/*.o
+!sdk/lib/*.a
+disk/*
+!disk/USER/
+disk/USER/*
+!disk/USER/*.lua
+!disk/USER/*.JPG
+
+# Security: Never Commit Private Keys (Public CustomSecureBoot.cer stays tracked)
+*.pfx
+*.key
+*.pem
+
+# Python & Captures
+__pycache__/
+*.pyc
+*.ppm
+
 # OS / Editor Files
 .DS_Store
 Thumbs.db
 .vscode/
+'@ | Set-Content -Encoding ASCII .gitignore
+
+git status -s

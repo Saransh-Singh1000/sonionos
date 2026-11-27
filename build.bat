@@ -19,6 +19,8 @@ set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\dr
 echo === [2/4] Compiling Thin Ring 0 Kernel (UEFI) ===
 gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fshort-wchar -mno-red-zone -nostdlib "-Wl,--subsystem,10" -e efi_main -Ikernel\include -Ikernel\include\libc boot\uefi\main.c %KSRCS% -o disk\EFI\BOOT\BOOTX64.EFI
 if errorlevel 1 goto :error
+python scripts\sign_efi.py
+if errorlevel 1 goto :error
 
 echo === [3/4] Compiling Thin Ring 0 Kernel (BIOS) ===
 where nasm >nul 2>nul
@@ -67,6 +69,7 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
 
 
 

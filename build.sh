@@ -117,6 +117,8 @@ echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
     "${KSRCS[@]}" \
     -o disk/EFI/BOOT/BOOTX64.EFI
 
+python3 scripts/sign_efi.py
+
 echo "=== [3/4] Compiling Thin Ring 0 Kernel (BIOS) ==="
 
 if command -v nasm >/dev/null 2>&1; then
