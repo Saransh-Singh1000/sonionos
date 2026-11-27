@@ -1,3 +1,4 @@
+#include "sched.h"
 #include "arch/syscall.h"
 #include "arch/gdt.h"
 #include "arch/paging.h"
@@ -91,6 +92,7 @@ static int dev_open_path(const char *p) {
 }
 uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
     uint64_t a1 = f->rdi, a2 = f->rsi, a3 = f->rdx;
+    sched_tick();
     switch (num) {
         case SYS_EXIT:
             int d = (r3_depth > 0) ? (r3_depth - 1) : 0; r3_exit_code[d] = (int)a1;
@@ -212,6 +214,26 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             }
             return last;
         }
+        case 30: { /* SYS_PS: copy compact task list to user buffer */
+            typedef struct { int pid, state, cpl; uint32_t mem_kb; uint64_t ticks; char name[24]; } UserTask;
+            UserTask *out = (UserTask *)a1;
+            int max = (int)a2, n = 0;
+            for (int i = 0; i < MAX_TASKS && n < max; i++) {
+                TaskInfo *t = sched_get(i);
+                if (t && t->state != TASK_UNUSED) {
+                    out[n].pid = t->pid; out[n].state = t->state;
+                    out[n].cpl = t->cpl; out[n].mem_kb = t->mem_kb;
+                    out[n].ticks = t->ticks;
+                    for (int k = 0; k < 24; k++) out[n].name[k] = t->name[k];
+                    n++;
+                }
+            }
+            return (uint64_t)n;
+        }
+        case 31: /* SYS_KILL */
+            return (uint64_t)(int64_t)sched_kill((int)a1);
+        case 32: /* SYS_SPAWN_BG */
+            return (uint64_t)(int64_t)sched_register_task((const char *)a1, 3, 256);
         default:
             return (uint64_t)-1LL;
     }
@@ -353,6 +375,9 @@ void ring3_fault_recover(uint64_t exc, uint64_t rip, uint64_t cr2) {
     r3_exit_code[d] = -(int)(128 + exc);
     longjmp(r3_ret_jmp[d], 1);
 }
+
+
+
 
 
 

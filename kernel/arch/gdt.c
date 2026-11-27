@@ -15,6 +15,7 @@ typedef struct __attribute__((packed)) {
 
 static uint64_t gdt[7] __attribute__((aligned(16)));
 static Tss64    tss      __attribute__((aligned(16)));
+static uint8_t  ist1_stack[8192] __attribute__((aligned(16)));
 static uint8_t  kstack[16384] __attribute__((aligned(16)));
 
 void tss_set_rsp0(uint64_t rsp0) { tss.rsp0 = rsp0; }
@@ -25,6 +26,7 @@ void gdt_init(void) {
     for (unsigned i = 0; i < sizeof(tss); i++) tp[i] = 0;
 
     tss.rsp0       = (uint64_t)(uintptr_t)(kstack + sizeof(kstack));
+    tss.ist[0]     = (uint64_t)(uintptr_t)(ist1_stack + sizeof(ist1_stack));
     tss.iomap_base = sizeof(Tss64);
 
     gdt[1] = 0x00AF9A000000FFFFULL;
@@ -57,3 +59,4 @@ void gdt_init(void) {
     uint16_t tss_sel = GDT_TSS_SEL;
     __asm__ volatile ("ltr %0" : : "r"(tss_sel));
 }
+
