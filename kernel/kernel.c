@@ -40,11 +40,12 @@ void kernel_main(BootInfo *info) {
     panic_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
 
+    block_init(info);
+    fat32_init();
+
     desktop_init(info, backbuf);
     console_init(info, backbuf, 2);
     console_set_flush(swap_buffers);
-    block_init(info);
-    fat32_init();
 
     console_set_color(0x0038BDF8, 0x00090D16);
     console_puts("[KERNEL] Ring 0 Ready -> Launching /USER/INIT.BIN in Ring 3...");
