@@ -2,32 +2,24 @@
 
 set -e
 
-if ! command -v gcc >/dev/null 2>&1; then
-    echo "[ERROR] GCC not found!"
-    exit 1
+CC="${CC:-x86_64-w64-mingw32-gcc}"
+LD="${LD:-x86_64-w64-mingw32-ld}"
+OBJCOPY="${OBJCOPY:-x86_64-w64-mingw32-objcopy}"
+
+if ! command -v "$CC" >/dev/null 2>&1; then
+    CC="gcc"
+    LD="ld"
+    OBJCOPY="objcopy"
 fi
 
-if ! command -v ld >/dev/null 2>&1; then
-    echo "[ERROR] LD not found!"
-    exit 1
-fi
-
-if ! command -v objcopy >/dev/null 2>&1; then
-    echo "[ERROR] objcopy not found!"
-    exit 1
-fi
-
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "[ERROR] Python 3 not found!"
-    exit 1
-fi
-
-CC="${CC:-gcc}"
-LD="${LD:-ld}"
-OBJCOPY="${OBJCOPY:-objcopy}"
+for tool in "$CC" "$LD" "$OBJCOPY" python3; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "[ERROR] $tool not found!"
+        exit 1
+    fi
+done
 
 QEMU="${QEMU:-qemu-system-x86_64}"
-
 BIOS_FD="${BIOS_FD:-}"
 
 if [ -z "$BIOS_FD" ]; then
@@ -43,16 +35,7 @@ if [ -z "$BIOS_FD" ]; then
     done
 fi
 
-mkdir -p build
-mkdir -p disk/EFI/BOOT
-mkdir -p disk/USER
-
-error() {
-    echo "[ERROR] Build failed!"
-    exit 1
-}
-
-trap error ERR
+mkdir -p build disk/EFI/BOOT disk/USER
 
 UFLAGS=(
     -O2
@@ -94,64 +77,9 @@ echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
 
 "$OBJCOPY" -O binary build/init.elf disk/USER/INIT.BIN
 
-echo "=== Building HELLO.BIN ==="
-
-"$CC" -O2 -ffreestanding -fno-stack-protector \
-    -mno-stack-arg-probe -mno-red-zone \
-    -fno-asynchronous-unwind-tables \
-    -Ikernel/include \
-    -c user/hello_r3.c -o build/hello_r3.o
-
-"$LD" --disable-dynamicbase --image-base 0x0 \
-    -T user/child.ld \
-    -o build/hello_r3.elf build/hello_r3.o
-
-"$OBJCOPY" -O binary build/hello_r3.elf disk/USER/HELLO.BIN
-
-echo "=== Building CRASH.BIN ==="
-
-"$CC" -O2 -ffreestanding -fno-stack-protector \
-    -mno-stack-arg-probe -mno-red-zone \
-    -fno-asynchronous-unwind-tables \
-    -Ikernel/include \
-    -c user/crash_r3.c -o build/crash_r3.o
-
-"$LD" --disable-dynamicbase --image-base 0x0 \
-    -T user/child.ld \
-    -o build/crash_r3.elf build/crash_r3.o
-
-"$OBJCOPY" -O binary build/crash_r3.elf disk/USER/CRASH.BIN
-
-echo "=== Building BENCH.BIN ==="
-
-"$CC" -O2 -ffreestanding -fno-stack-protector \
-    -mno-stack-arg-probe -mno-red-zone \
-    -fno-asynchronous-unwind-tables \
-    -Ikernel/include \
-    -c user/bench_r3.c -o build/bench_r3.o
-
-"$LD" --disable-dynamicbase --image-base 0x0 \
-    -T user/child.ld \
-    -o build/bench_r3.elf build/bench_r3.o
-
-"$OBJCOPY" -O binary build/bench_r3.elf disk/USER/BENCH.BIN
-
-echo "=== Building MEMINFO.BIN ==="
-
-"$CC" -O2 -ffreestanding -fno-stack-protector \
-    -mno-stack-arg-probe -mno-red-zone \
-    -fno-asynchronous-unwind-tables \
-    -Ikernel/include \
-    -c user/meminfo_r3.c -o build/meminfo_r3.o
-
-"$LD" --disable-dynamicbase --image-base 0x0 \
-    -T user/child.ld \
-    -o build/meminfo_r3.elf build/meminfo_r3.o
-
-"$OBJCOPY" -O binary build/meminfo_r3.elf disk/USER/MEMINFO.BIN
-
 KSRCS=(
     kernel/kernel.c
+    kernel/sched.c
     kernel/gfx.c
     kernel/desktop.c
     kernel/panic.c
@@ -192,13 +120,11 @@ echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 echo "=== [3/4] Compiling Thin Ring 0 Kernel (BIOS) ==="
 
 if command -v nasm >/dev/null 2>&1; then
-
     nasm -f bin boot/bios/boot.asm -o build/bios_boot.bin
     nasm -f win64 boot/bios/entry64.asm -o build/entry64.o
 
     for src in boot/bios/bios_hal.c "${KSRCS[@]}"; do
         name=$(basename "$src" .c)
-
         "$CC" -O3 -ffast-math \
             -ffreestanding \
             -fno-stack-protector \
@@ -220,6 +146,7 @@ if command -v nasm >/dev/null 2>&1; then
         build/entry64.o \
         build/bios_hal.o \
         build/kernel.o \
+        build/sched.o \
         build/gfx.o \
         build/desktop.o \
         build/panic.o \
@@ -240,21 +167,19 @@ if command -v nasm >/dev/null 2>&1; then
         build/fat32.o
 
     python3 scripts/build_flat.py
-
     cat build/bios_boot.bin build/bios_kernel.bin > build/sonionos_bios.img
-
     truncate -s 2097152 build/sonionos_bios.img
-
     echo "[OK] Built Ring 3 User Space + Thin Ring 0 Kernels!"
-
 else
     echo "[SKIP] NASM not found!"
 fi
 
 echo "=== [4/4] Launching QEMU ==="
 
-if [ "${1:-}" = "bios" ]; then
-
+if [ "${1:-}" = "iso" ]; then
+    python3 scripts/make_iso.py
+    echo "[READY] Built build/sonionOS.iso!"
+elif [ "${1:-}" = "bios" ]; then
     "$QEMU" \
         -cpu max \
         -m 256M \
@@ -262,15 +187,11 @@ if [ "${1:-}" = "bios" ]; then
         -drive file=fat:rw:disk,format=raw,if=ide,index=1 \
         -display sdl,grab-mod=lctrl-lalt \
         -serial none
-
 else
-
     if [ -z "$BIOS_FD" ]; then
-        echo "[ERROR] OVMF firmware not found!"
-        echo "Set BIOS_FD to your OVMF_CODE.fd location."
+        echo "[ERROR] OVMF firmware not found! Set BIOS_FD to your OVMF_CODE.fd path."
         exit 1
     fi
-
     "$QEMU" \
         -cpu max \
         -m 256M \
@@ -278,5 +199,4 @@ else
         -drive file=fat:rw:disk,format=raw \
         -display sdl,grab-mod=lctrl-lalt \
         -serial none
-
-
+fi
