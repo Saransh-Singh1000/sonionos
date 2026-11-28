@@ -1,5 +1,7 @@
 #include "desktop.h"
 #include "gfx.h"
+#include "wallpaper.h"
+#include "icons.h"
 
 static BootInfo *d_info;
 
@@ -9,6 +11,8 @@ static int previous_click;
 static int dragging;
 
 static int selected_icon = -1;
+static int switcher_cx = -58;
+static int switcher_alpha = 105;
 
 static int win_x, win_y, win_w, win_h;
 static int saved_x, saved_y, saved_w, saved_h;
@@ -80,38 +84,127 @@ static void draw_window(void) {
                   0x00090D16);
 }
 
+
+/* Left-side open application switcher */
+
+static void draw_open_apps(void) {
+    if (!d_info) return;
+
+    int cy = (int)d_info->height / 2;
+    int radius = 88;
+
+    int near = mouse_x < 88 &&
+               mouse_y >= cy - radius - 30 &&
+               mouse_y <= cy + radius + 30;
+
+    int target_x = near ? -18 : -58;
+
+    /* Smooth horizontal slide */
+    if (switcher_cx < target_x) {
+        switcher_cx += 5;
+        if (switcher_cx > target_x) switcher_cx = target_x;
+    } else if (switcher_cx > target_x) {
+        switcher_cx -= 5;
+        if (switcher_cx < target_x) switcher_cx = target_x;
+    }
+
+    /* Smooth opacity transition */
+    int target_alpha = near ? 238 : 105;
+    if (switcher_alpha < target_alpha) {
+        switcher_alpha += 12;
+        if (switcher_alpha > target_alpha)
+            switcher_alpha = target_alpha;
+    } else if (switcher_alpha > target_alpha) {
+        switcher_alpha -= 12;
+        if (switcher_alpha < target_alpha)
+            switcher_alpha = target_alpha;
+    }
+
+    int cx = switcher_cx;
+    uint8_t alpha = (uint8_t)switcher_alpha;
+    uint32_t accent = near ? 0x0038BDF8 : 0x002D83A9;
+
+    /* Semicircle extending beyond the left edge */
+    for (int y = cy - radius; y <= cy + radius; y++) {
+        int oy = y - cy;
+        int remaining = radius * radius - oy * oy;
+        if (remaining < 0 || y < 0 || y >= (int)d_info->height)
+            continue;
+
+        int span = 0;
+        while ((span + 1) * (span + 1) <= remaining)
+            span++;
+
+        for (int x = 0; x <= span + cx; x++) {
+            if (x < 0) continue;
+            gfx_blend_pixel(x, y, 0x0018273D, alpha);
+        }
+
+        /* Outer illuminated boundary */
+        int edge = cx + span;
+        if (edge >= 0 && edge < (int)d_info->width)
+            gfx_blend_pixel(edge, y, accent, alpha);
+
+        /* Inner coloured curved boundary */
+        int inner = cx + span - 7;
+        if (inner >= 0 && inner < (int)d_info->width)
+            gfx_blend_pixel(inner, y, 0x0022D3EE, alpha);
+    }
+
+    /* Small accent indicators */
+    for (int i = 0; i < 3; i++) {
+        int px = cx + 27 + i * 9;
+        int py = cy + 38;
+        gfx_fill_rect(px, py, 4, 4,
+                      near ? 0x0038BDF8 : 0x00516B87);
+    }
+
+    /* Console app tile */
+    int ix = cx + 30;
+    int iy = cy - 20;
+
+    gfx_fill_rect(ix, iy, 40, 40,
+                  near ? 0x0038BDF8 : 0x002B5675);
+    gfx_rect(ix, iy, 40, 40,
+             near ? 0x00FFFFFF : 0x007B9BB8);
+
+    gfx_fill_rect(ix + 8, iy + 9, 24, 22, 0x00090D16);
+    gfx_fill_rect(ix + 12, iy + 15, 8, 2, 0x00FFFFFF);
+    gfx_fill_rect(ix + 18, iy + 19, 2, 7, 0x00FFFFFF);
+    gfx_fill_rect(ix + 18, iy + 24, 8, 2, 0x00FFFFFF);
+}
+
 static void draw_scene(void) {
     uint32_t w = d_info->width;
     uint32_t h = d_info->height;
 
     gfx_fill(0x000B1220);
+    wallpaper_draw((int)w, (int)h);
 
-    gfx_fill_rect(w * 3 / 5, 60, w / 3, h / 3,
-                  0x0015223A);
-
-    gfx_fill_rect(w * 2 / 3, 90, w / 4, h / 4,
-                  0x001B2C48);
+    /* Subtle desktop accent lines */
+    for (uint32_t i = 0; i < 5; i++) {
+        int px = (int)(w * 3 / 5 + i * 13);
+        gfx_blend_pixel(px, 52, 0x0038BDF8, 90);
+    }
 
     /* Top panel */
     gfx_fill_rect(0, 0, w, 34, 0x00101829);
     gfx_fill_rect(0, 33, w, 1, 0x0038BDF8);
+    gfx_fill_rect((int)w - 72, 13, 7, 7, 0x0022C55E);
+    gfx_fill_rect((int)w - 58, 15, 35, 3, 0x00516B87);
 
     /* Desktop icons */
     for (int i = 0; i < 3; i++) {
         int x = 28;
         int y = 64 + i * 100;
+        int hovered = inside(mouse_x, mouse_y, x - 6, y - 6, 60, 60);
 
-        if (selected_icon == i) {
-            gfx_fill_rect(x - 6, y - 6, 60, 60,
-                          0x00304765);
-            gfx_rect(x - 6, y - 6, 60, 60,
-                     0x0038BDF8);
+        if (selected_icon == i || hovered) {
+            gfx_fill_rect(x - 6, y - 6, 60, 60, 0x00304765);
+            gfx_rect(x - 6, y - 6, 60, 60, 0x0038BDF8);
         }
 
-        gfx_fill_rect(x, y, 48, 48, icon_colors[i]);
-        gfx_rect(x, y, 48, 48, 0x00E2E8F0);
-        gfx_fill_rect(x + 12, y + 12, 24, 24,
-                      0x00E2E8F0);
+        icons_draw(i, x, y, 48, 48);
     }
 
     /* Dock */
@@ -144,6 +237,7 @@ static void draw_scene(void) {
     }
 
     draw_window();
+    draw_open_apps();
 }
 
 void desktop_console_bounds(int *x, int *y, int *w, int *h) {
@@ -198,6 +292,10 @@ void desktop_init(BootInfo *info, uint32_t *backbuf) {
     draw_scene();
 }
 
+void desktop_refresh(void) {
+    if (d_info) draw_scene();
+}
+
 static void maximize_window(void) {
     if (!win_maximized) {
         saved_x = win_x;
@@ -243,9 +341,18 @@ void desktop_update(const InputState *input) {
                      ((d_info->width > 440) ? 400 :
                       (int)d_info->width - 32)) / 2;
 
+        /* Left-side app switcher: restore Console */
+        int switch_y = (int)d_info->height / 2 - 24;
+        if (inside(mouse_x, mouse_y, 8, switch_y, 52, 48)) {
+            win_open = 1;
+            win_minimized = 0;
+            win_focused = 1;
+            dragging = 0;
+        }
+
         /* Restore console from its dock icon */
-        if (inside(mouse_x, mouse_y,
-                   dock_x + 14, dock_y() + 8, 40, 40)) {
+        else if (inside(mouse_x, mouse_y,
+                        dock_x + 14, dock_y() + 8, 40, 40)) {
             win_open = 1;
             win_minimized = 0;
             win_focused = 1;

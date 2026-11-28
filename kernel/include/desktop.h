@@ -7,6 +7,7 @@
 void desktop_init(BootInfo *info, uint32_t *backbuf);
 void desktop_update(const InputState *input);
 void desktop_draw_cursor(void);
+void desktop_refresh(void);
 void desktop_console_bounds(int *x, int *y, int *w, int *h);
 int desktop_console_visible(void);
 

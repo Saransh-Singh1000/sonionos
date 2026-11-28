@@ -14,7 +14,8 @@ typedef struct { uint32_t MaxMode, Mode; EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *I
 typedef struct _EFI_GRAPHICS_OUTPUT_PROTOCOL { void* QueryMode; void* SetMode; void* Blt; EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode; } EFI_GRAPHICS_OUTPUT_PROTOCOL;
 typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10,*f11,*f12,*f13,*f14,*f15,*f16,*f17; EFI_STATUS (*HandleProtocol)(EFI_HANDLE H, EFI_GUID *P, void **I); void *f19,*f20,*f21,*f22,*f23,*f24,*f25,*f26,*f27,*f28; EFI_STATUS (__attribute__((ms_abi)) *Stall)(UINTN Microseconds); void *f30; EFI_STATUS (*ConnectController)(EFI_HANDLE C, EFI_HANDLE *D, void *R, uint8_t Rec); void *f32,*f33,*f34,*f35; EFI_STATUS (*LocateHandleBuffer)(UINTN T, EFI_GUID *P, void *K, UINTN *N, EFI_HANDLE **B); void *f37; EFI_STATUS (__attribute__((ms_abi)) *LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface); } EFI_BOOT_SERVICES;
 typedef struct { EFI_TABLE_HEADER Hdr; void *f1,*f2,*f3,*f4,*f5,*f6,*f7,*f8,*f9,*f10; void (__attribute__((ms_abi)) *ResetSystem)(int ResetType, EFI_STATUS ResetStatus, UINTN DataSize, void *ResetData); } EFI_RUNTIME_SERVICES;
-typedef struct { EFI_TABLE_HEADER Hdr; CHAR16 *FirmwareVendor; uint32_t FirmwareRevision; EFI_HANDLE ConsoleInHandle; EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn; EFI_HANDLE ConsoleOutHandle; void* ConOut; EFI_HANDLE StandardErrorHandle; void* StdErr; EFI_RUNTIME_SERVICES *RuntimeServices; EFI_BOOT_SERVICES *BootServices; } EFI_SYSTEM_TABLE;
+typedef struct { EFI_GUID VendorGuid; void *VendorTable; } EFI_CONFIGURATION_TABLE;
+typedef struct { EFI_TABLE_HEADER Hdr; CHAR16 *FirmwareVendor; uint32_t FirmwareRevision; EFI_HANDLE ConsoleInHandle; EFI_SIMPLE_TEXT_INPUT_PROTOCOL *ConIn; EFI_HANDLE ConsoleOutHandle; void* ConOut; EFI_HANDLE StandardErrorHandle; void* StdErr; EFI_RUNTIME_SERVICES *RuntimeServices; EFI_BOOT_SERVICES *BootServices; UINTN NumberOfTableEntries; EFI_CONFIGURATION_TABLE *ConfigurationTable; } EFI_SYSTEM_TABLE;
 
 static EFI_SYSTEM_TABLE *g_st = 0;
 static EFI_SIMPLE_POINTER_PROTOCOL *g_mice[8];
@@ -126,23 +127,6 @@ void uefi_poll_input(InputState *state) {
             if (ms.LeftButton) state->left_click = 1;
         }
     }
-    while (u_inb(0x64) & 1) {
-        uint8_t status = u_inb(0x64);
-        if (!(status & 0x20)) break; /* leave keyboard byte for UEFI ConIn! */
-        uint8_t data = u_inb(0x60);
-        if (uefi_mcycle == 0 && !(data & 0x08)) continue;
-        uefi_mpkt[uefi_mcycle++] = data;
-        if (uefi_mcycle == uefi_pkt_len) {
-            uefi_mcycle = 0;
-            uefi_mbtn = uefi_mpkt[0] & 0x07;
-            int32_t dx = (int32_t)uefi_mpkt[1] - ((uefi_mpkt[0] & 0x10) ? 256 : 0);
-            int32_t dy = (int32_t)uefi_mpkt[2] - ((uefi_mpkt[0] & 0x20) ? 256 : 0);
-            cur_mx += dx; cur_my -= dy;
-            if (cur_mx < 0) cur_mx = 0; if (cur_mx >= max_w) cur_mx = max_w - 1;
-            if (cur_my < 0) cur_my = 0; if (cur_my >= max_h) cur_my = max_h - 1;
-            if (uefi_pkt_len == 4) { int8_t dz = (int8_t)(uefi_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; uefi_mz += dz; }
-        }
-    }
     state->mouse_btns = uefi_mbtn & 0x07;
     if (uefi_mbtn & 1) state->left_click = 1;
     state->scroll_z = uefi_mz;
@@ -153,6 +137,46 @@ void uefi_poll_input(InputState *state) {
 void uefi_sleep_ms(uint32_t ms) { g_st->BootServices->Stall((UINTN)ms * 1000); }
 void uefi_reboot(void) { g_st->RuntimeServices->ResetSystem(0, 0, 0, 0); }
 void uefi_shutdown(void) { g_st->RuntimeServices->ResetSystem(2, 0, 0, 0); }
+
+
+static int uefi_guid_equal(const EFI_GUID *a, const EFI_GUID *b) {
+    if (a->Data1 != b->Data1 ||
+        a->Data2 != b->Data2 ||
+        a->Data3 != b->Data3)
+        return 0;
+
+    for (unsigned i = 0; i < 8; i++)
+        if (a->Data4[i] != b->Data4[i]) return 0;
+
+    return 1;
+}
+
+static uint64_t uefi_find_acpi_rsdp(EFI_SYSTEM_TABLE *st) {
+    static const EFI_GUID acpi20 = {
+        0x8868e871, 0xe4f1, 0x11d3,
+        {0xbc,0x22,0x00,0x80,0xc7,0x3c,0x88,0x81}
+    };
+    static const EFI_GUID acpi10 = {
+        0xeb9d2d30, 0x2d88, 0x11d3,
+        {0x9a,0x16,0x00,0x90,0x27,0x3f,0xc1,0x4d}
+    };
+
+    uint64_t fallback = 0;
+    if (!st || !st->ConfigurationTable) return 0;
+
+    for (UINTN i = 0; i < st->NumberOfTableEntries; i++) {
+        EFI_CONFIGURATION_TABLE *entry = &st->ConfigurationTable[i];
+        if (!entry->VendorTable) continue;
+
+        if (uefi_guid_equal(&entry->VendorGuid, &acpi20))
+            return (uint64_t)(uintptr_t)entry->VendorTable;
+
+        if (uefi_guid_equal(&entry->VendorGuid, &acpi10))
+            fallback = (uint64_t)(uintptr_t)entry->VendorTable;
+    }
+
+    return fallback;
+}
 
 EFI_STATUS __attribute__((ms_abi)) efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st) {
     g_st = st;
@@ -195,6 +219,7 @@ EFI_STATUS __attribute__((ms_abi)) efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st
     info.width       = max_w;
     info.height      = max_h;
     info.pitch       = gop->Mode->Info->PixelsPerScanLine;
+    info.acpi_rsdp    = uefi_find_acpi_rsdp(st);
     info.poll_input  = uefi_poll_input;
     info.sleep_ms    = uefi_sleep_ms;
     info.reboot      = uefi_reboot;
@@ -204,6 +229,7 @@ EFI_STATUS __attribute__((ms_abi)) efi_main(EFI_HANDLE img, EFI_SYSTEM_TABLE *st
     kernel_main(&info);
     return 0;
 }
+
 
 
 

@@ -15,6 +15,7 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     uint32_t pitch;
+    uint64_t acpi_rsdp; /* Physical RSDP address, or 0. */
 
     void (*poll_input)(InputState *state);
     void (*sleep_ms)(uint32_t ms);

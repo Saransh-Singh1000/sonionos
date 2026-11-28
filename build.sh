@@ -2,17 +2,13 @@
 
 set -e
 
-CC="${CC:-x86_64-w64-mingw32-gcc}"
-LD="${LD:-x86_64-w64-mingw32-ld}"
-OBJCOPY="${OBJCOPY:-x86_64-w64-mingw32-objcopy}"
+CC="${CC:-clang}"
+LD="${LD:-ld.lld}"
+OBJCOPY="${OBJCOPY:-llvm-objcopy}"
 
-if ! command -v "$CC" >/dev/null 2>&1; then
-    CC="gcc"
-    LD="ld"
-    OBJCOPY="objcopy"
-fi
-
-for tool in "$CC" "$LD" "$OBJCOPY" python3; do
+TARGET_WIN="--target=x86_64-w64-windows-gnu"
+TARGET_ELF="--target=x86_64-unknown-elf"
+for tool in "$CC" "$LD" "$OBJCOPY" nasm python3; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "[ERROR] $tool not found!"
         exit 1
@@ -36,7 +32,27 @@ if [ -z "$BIOS_FD" ]; then
 fi
 
 mkdir -p build disk/EFI/BOOT disk/USER
+# Sonion automatic SVG -> PNG -> BIN icon conversion
 
+mkdir -p build disk/SYSTEM/ICONS
+
+for pair in "COMPUTER:monitor" "FILES:folder" "SETTINGS:settings"; do
+    name="${pair%%:*}"
+    source="${pair##*:}"
+
+    echo "[ICON] Converting $source.svg -> $name.BIN"
+
+    rsvg-convert -w 64 -h 64 \
+        "assets/icons/$source.svg" \
+        -o "build/$name.png"
+
+    tools/sonion_img/sonion_img \
+        "build/$name.png" \
+        -o "disk/SYSTEM/ICONS/$name.BIN"
+done
+
+
+if [ -f "user/init.c" ]; then
 UFLAGS=(
     -O2
     -ffast-math
@@ -50,7 +66,6 @@ UFLAGS=(
     -Iuser
     -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include
     -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc
-    -Iuser/lua
 )
 
 USRCS=(
@@ -63,25 +78,32 @@ USRCS=(
     kernel/libc/math.c
     kernel/libc/setjmp.c
     kernel/libc/locale_signal.c
-    user/lua_runner.c
 )
 
 echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
+UOBJS=()
+i=0
+for src in "${USRCS[@]}"; do
+    obj="build/user_${i}.o"
+    "$CC" $TARGET_ELF "${UFLAGS[@]}" -c "$src" -o "$obj"
+    UOBJS+=("$obj")
+    ((i+=1))
+done
 
-"$CC" "${UFLAGS[@]}" \
-    "${USRCS[@]}" \
-    user/lua/*.c \
-    -nostdlib \
-    -Wl,--disable-dynamicbase,--image-base,0x0,-T,user/user.ld \
-    -o build/init.elf
-
+"$LD" -m elf_x86_64 -T user/user.ld -o build/init.elf "${UOBJS[@]}"
 "$OBJCOPY" -O binary build/init.elf disk/USER/INIT.BIN
+else
+    echo "=== [1/4] Skipping Ring 3 INIT.BIN (user/ is empty) ==="
+fi
 
 KSRCS=(
     kernel/kernel.c
     kernel/sched.c kernel/kbd_events.c
     kernel/gfx.c
-    kernel/desktop.c kernel/splash.c
+    kernel/desktop.c
+    kernel/splash.c
+    kernel/wallpaper.c
+    kernel/icons.c
     kernel/panic.c
     kernel/console.c
     kernel/arch/gdt.c
@@ -91,6 +113,7 @@ KSRCS=(
     kernel/libc/memory.c lib/img/img.c
     kernel/libc/setjmp.c
     kernel/libc/time.c
+    kernel/drivers/acpi.c
     kernel/drivers/blockdev.c
     kernel/drivers/pci.c kernel/drivers/audio.c
     kernel/drivers/nvme.c
@@ -104,7 +127,7 @@ python3 scripts/embed_logo.py
 
 echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 
-"$CC" -O3 -ffast-math \
+"$CC" $TARGET_WIN -fuse-ld=lld -O3 -ffast-math \
     -ffreestanding \
     -fno-stack-protector \
     -mno-stack-arg-probe \
@@ -125,27 +148,26 @@ echo "=== [3/4] Compiling Thin Ring 0 Kernel (BIOS) ==="
 
 if command -v nasm >/dev/null 2>&1; then
     nasm -f bin boot/bios/boot.asm -o build/bios_boot.bin
-    nasm -f win64 boot/bios/entry64.asm -o build/entry64.o
+    nasm -f elf64 boot/bios/entry64.asm -o build/entry64.o
 
     for src in boot/bios/bios_hal.c "${KSRCS[@]}"; do
         name=$(basename "$src" .c)
-        "$CC" -O3 -ffast-math \
+        "$CC" $TARGET_ELF -O3 -ffast-math \
             -ffreestanding \
             -fno-stack-protector \
-            -mno-stack-arg-probe \
             -fno-asynchronous-unwind-tables \
             -fno-unwind-tables \
             -mno-red-zone \
             -mno-avx \
             -fno-tree-loop-distribute-patterns \
             -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include \
-            -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc \
+            -Ikernel/include/libc \
             -c "$src" \
             -o "build/$name.o"
     done
 
-    "$LD" --disable-dynamicbase --image-base 0x10000 \
-        -T boot/bios/bios.ld \
+    "$LD" -m elf_x86_64 \
+        --script=boot/bios/bios.ld \
         -o build/bios_kernel.elf \
         build/entry64.o \
         build/bios_hal.o \
@@ -162,13 +184,15 @@ if command -v nasm >/dev/null 2>&1; then
         build/memory.o build/img.o \
         build/setjmp.o \
         build/time.o \
+        build/acpi.o \
         build/blockdev.o \
         build/pci.o build/audio.o \
         build/nvme.o \
         build/ahci.o \
         build/ata.o \
         build/usb_msc.o \
-        build/fat32.o
+        build/fat32.o \
+        build/icons.o
 
     python3 scripts/build_flat.py
     cat build/bios_boot.bin build/bios_kernel.bin > build/sonionos_bios.img

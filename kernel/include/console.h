@@ -16,6 +16,7 @@ int  console_getchar(int blocking);
 
 void console_set_flush(void (*fn)(void));
 void console_flush_now(void);
+void console_set_title(const char *title);
 #endif
 
 

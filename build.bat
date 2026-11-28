@@ -4,17 +4,27 @@ setlocal
 if not exist "build" mkdir "build"
 if not exist "disk\EFI\BOOT" mkdir "disk\EFI\BOOT"
 if not exist "disk\USER" mkdir "disk\USER"
+REM Sonion automatic icon conversion
 
-set UFLAGS=-O2 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -U_WIN32 -U_WIN64 -Iuser -Ikernel\include -Idrivers\include -Ilib\include -Ikernel\include\libc -Iuser\lua
-set USRCS=user\init.c user\ulibc\stdio.c user\ulibc\time.c user\ulibc\memory.c kernel\libc\string.c kernel\libc\stdlib.c kernel\libc\math.c kernel\libc\setjmp.c kernel\libc\locale_signal.c user\lua_runner.c
+if not exist "assets\ICONS" mkdir "assets\ICONS"
+if not exist "disk\SYSTEM\ICONS" mkdir "disk\SYSTEM\ICONS"
+for %%N in (COMPUTER FILES SETTINGS) do (
+    if exist "assets\ICONS\%%N.png" sonion_img.exe "assets\ICONS\%%N.png" -o "disk\SYSTEM\ICONS\%%N.BIN"
+    if exist "assets\ICONS\%%N.jpg" sonion_img.exe "assets\ICONS\%%N.jpg" -o "disk\SYSTEM\ICONS\%%N.BIN"
+)
+
+if exist "assets\WALLPAPER.BIN" copy /Y "assets\WALLPAPER.BIN" "disk\WALLPAPER.BIN" >nul
+
+set UFLAGS=-O2 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -U_WIN32 -U_WIN64 -Iuser -Ikernel\include -Idrivers\include -Ilib\include -Ikernel\include\libc
+set USRCS=user\init.c user\ulibc\stdio.c user\ulibc\time.c user\ulibc\memory.c kernel\libc\string.c kernel\libc\stdlib.c kernel\libc\math.c kernel\libc\setjmp.c kernel\libc\locale_signal.c
 
 echo === [1/4] Compiling Ring 3 User-Mode INIT.BIN ===
-gcc %UFLAGS% %USRCS% user\lua\*.c -nostdlib "-Wl,--disable-dynamicbase,--image-base,0x0,-T,user\user.ld" -o build\init.elf
+gcc %UFLAGS% %USRCS% -nostdlib "-Wl,--disable-dynamicbase,--image-base,0x0,-T,user\user.ld" -o build\init.elf
 if errorlevel 1 goto :error
 objcopy -O binary build\init.elf disk\USER\INIT.BIN
 if errorlevel 1 goto :error
 
-set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\blockdev.c kernel\drivers\nvme.c kernel\drivers\pci.c kernel\drivers\audio.c kernel\drivers\usb_msc.c kernel\fs\fat32.c kernel\libc\memory.c lib\img\img.c kernel\libc\setjmp.c kernel\libc\string.c kernel\libc\time.c kernel\console.c kernel\desktop.c kernel\splash.c kernel\gfx.c kernel\kernel.c kernel\sched.c kernel\kbd_events.c kernel\panic.c
+set KSRCS=kernel\arch\gdt.c kernel\arch\paging.c kernel\arch\syscall.c kernel\drivers\acpi.c kernel\drivers\ahci.c kernel\drivers\ata.c kernel\drivers\blockdev.c kernel\drivers\nvme.c kernel\drivers\pci.c kernel\drivers\audio.c kernel\drivers\usb_msc.c kernel\fs\fat32.c kernel\libc\memory.c lib\img\img.c kernel\libc\setjmp.c kernel\libc\string.c kernel\libc\time.c kernel\console.c kernel\desktop.c kernel\splash.c kernel\gfx.c kernel\wallpaper.c kernel\icons.c kernel\kernel.c kernel\sched.c kernel\kbd_events.c kernel\panic.c
 
 python scripts\embed_logo.py
 if errorlevel 1 goto :error
@@ -38,7 +48,7 @@ if %errorlevel%==0 (
         if errorlevel 1 goto :error
     )
 
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\audio.o build\usb_msc.o build\fat32.o build\memory.o build\img.o build\setjmp.o build\string.o build\time.o build\console.o build\desktop.o build\splash.o build\gfx.o build\kernel.o build\sched.o build\kbd_events.o build\panic.o
+    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\acpi.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\audio.o build\usb_msc.o build\fat32.o build\memory.o build\img.o build\setjmp.o build\string.o build\time.o build\console.o build\desktop.o build\splash.o build\gfx.o build\wallpaper.o build\icons.o build\kernel.o build\sched.o build\kbd_events.o build\panic.o
     if errorlevel 1 goto :error
 
     python scripts\build_flat.py
@@ -72,6 +82,9 @@ goto :eof
 echo [ERROR] Build failed!
 pause
 exit /b 1
+
+
+
 
 
 

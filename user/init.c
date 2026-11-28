@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <time.h>
 #include "usyscall.h"
-#include "lua_runner.h"
+
 
 static char cwd[256] = "/USER";
 
@@ -230,7 +230,7 @@ static void shell_exec(char *cmdline) {
         if (!*args) printf("Usage: lua <script.lua>\n");
         else {
             char t[256]; resolve_path(args, t, sizeof(t));
-            lua_run_file(t);
+            (void)(t);
         }
     } else if (!strcmp(cmd, "exec")) {
         if (!*args) printf("Usage: exec <program.bin>\n");
@@ -266,6 +266,8 @@ void _start(void) {
     }
     sys_exit(0);
 }
+
+
 
 
 

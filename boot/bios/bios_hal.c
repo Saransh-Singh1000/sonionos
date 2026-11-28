@@ -57,6 +57,7 @@ static void calibrate_tsc(void) {
 }
 
 static int32_t ps2_mx = 400, ps2_my = 300;
+static int32_t ps2_screen_w = 800, ps2_screen_h = 600;
 static uint8_t ps2_e0 = 0;
 static uint8_t ps2_mbtn = 0, ps2_mcycle = 0, ps2_pkt_len = 3;
 static int8_t  ps2_mz = 0;
@@ -107,8 +108,8 @@ void bios_poll_input(InputState *state) {
                 int32_t dx = (int32_t)ps2_mpkt[1] - ((ps2_mpkt[0] & 0x10) ? 256 : 0);
                 int32_t dy = (int32_t)ps2_mpkt[2] - ((ps2_mpkt[0] & 0x20) ? 256 : 0);
                 ps2_mx += dx; ps2_my -= dy;
-                if (ps2_mx < 0) ps2_mx = 0; if (ps2_mx > 799) ps2_mx = 799;
-                if (ps2_my < 0) ps2_my = 0; if (ps2_my > 599) ps2_my = 599;
+                if (ps2_mx < 0) ps2_mx = 0; if (ps2_mx >= ps2_screen_w) ps2_mx = ps2_screen_w - 1;
+                if (ps2_my < 0) ps2_my = 0; if (ps2_my >= ps2_screen_h) ps2_my = ps2_screen_h - 1;
                 if (ps2_pkt_len == 4) { int8_t dz = (int8_t)(ps2_mpkt[3] & 0x0F); if (dz & 0x08) dz |= (int8_t)0xF0; ps2_mz += dz; }
             }
         } else if (!(data & 0x80)) {
@@ -141,9 +142,43 @@ void bios_shutdown(void) {
     while (1) __asm__("hlt");
 }
 
+static uint64_t bios_scan_rsdp(uintptr_t start, uintptr_t end) {
+    if (end <= start || end - start < 8) return 0;
+
+    uintptr_t p = (start + 15u) & ~(uintptr_t)15u;
+    for (; p <= end - 8; p += 16) {
+        const volatile uint8_t *b = (const volatile uint8_t *)p;
+        static const char sig[8] = "RSD PTR ";
+        unsigned i;
+        for (i = 0; i < 8; i++)
+            if (b[i] != (uint8_t)sig[i]) break;
+        if (i == 8) return (uint64_t)p;
+    }
+    return 0;
+}
+
+static uint64_t bios_find_rsdp(void) {
+    uint16_t ebda_segment =
+        *(volatile uint16_t *)(uintptr_t)0x40E;
+    uintptr_t ebda = (uintptr_t)ebda_segment << 4;
+
+    if (ebda >= 0x80000 && ebda < 0xA0000) {
+        uint64_t found = bios_scan_rsdp(ebda, ebda + 1024);
+        if (found) return found;
+    }
+
+    return bios_scan_rsdp(0xE0000, 0x100000);
+}
+
 __attribute__((section(".text.entry")))
 void bios_entry(VesaModeInfo *vesa) {
     calibrate_tsc();
+
+    ps2_screen_w = (vesa && vesa->width) ? vesa->width : 800;
+    ps2_screen_h = (vesa && vesa->height) ? vesa->height : 600;
+    ps2_mx = ps2_screen_w / 2;
+    ps2_my = ps2_screen_h / 2;
+
     ps2_mouse_init();
 
     BootInfo info;
@@ -151,6 +186,7 @@ void bios_entry(VesaModeInfo *vesa) {
     info.width       = vesa->width  ? vesa->width  : 800;
     info.height      = vesa->height ? vesa->height : 600;
     info.pitch       = vesa->pitch  ? (vesa->pitch / 4) : info.width;
+    info.acpi_rsdp   = bios_find_rsdp();
     info.poll_input  = bios_poll_input;
     info.sleep_ms    = bios_sleep_ms;
     info.reboot      = bios_reboot;
@@ -163,6 +199,7 @@ void bios_entry(VesaModeInfo *vesa) {
 
 
 uint32_t g_mouse_dbg = 0;
+
 
 
 
