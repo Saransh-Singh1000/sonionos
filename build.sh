@@ -32,6 +32,25 @@ if [ -z "$BIOS_FD" ]; then
 fi
 
 mkdir -p build disk/EFI/BOOT disk/USER
+# Sonion automatic SVG -> PNG -> BIN icon conversion
+
+mkdir -p build disk/SYSTEM/ICONS
+
+for pair in "COMPUTER:monitor" "FILES:folder" "SETTINGS:settings"; do
+    name="${pair%%:*}"
+    source="${pair##*:}"
+
+    echo "[ICON] Converting $source.svg -> $name.BIN"
+
+    rsvg-convert -w 64 -h 64 \
+        "assets/icons/$source.svg" \
+        -o "build/$name.png"
+
+    tools/sonion_img/sonion_img \
+        "build/$name.png" \
+        -o "disk/SYSTEM/ICONS/$name.BIN"
+done
+
 
 UFLAGS=(
     -O2
@@ -63,14 +82,16 @@ USRCS=(
 )
 
 echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
+UOBJS=()
+i=0
+for src in "${USRCS[@]}" user/lua/*.c; do
+    obj="build/user_${i}.o"
+    "$CC" $TARGET_ELF "${UFLAGS[@]}" -c "$src" -o "$obj"
+    UOBJS+=("$obj")
+    ((i+=1))
+done
 
-"$CC" $TARGET_WIN -fuse-ld=lld "${UFLAGS[@]}" \
-    "${USRCS[@]}" \
-    user/lua/*.c \
-    -nostdlib \
-    -Wl,--disable-dynamicbase,--image-base,0x0,-T,user/user.ld \
-    -o build/init.elf
-
+"$LD" -m elf_x86_64 -T user/user.ld -o build/init.elf "${UOBJS[@]}"
 "$OBJCOPY" -O binary build/init.elf disk/USER/INIT.BIN
 
 KSRCS=(
@@ -162,7 +183,8 @@ if command -v nasm >/dev/null 2>&1; then
         build/ahci.o \
         build/ata.o \
         build/usb_msc.o \
-        build/fat32.o
+        build/fat32.o \
+        build/icons.o
 
     python3 scripts/build_flat.py
     cat build/bios_boot.bin build/bios_kernel.bin > build/sonionos_bios.img
