@@ -41,6 +41,31 @@ static int c_area_w = 0, c_area_h = 0;
 
 static char     grid_ch[MAX_ROWS][MAX_COLS];
 static uint32_t grid_fg[MAX_ROWS][MAX_COLS];
+static char c_title[64] = "SonionOS Console";
+
+void console_set_title(const char *title) {
+    if (!title || !*title) title = "SonionOS Console";
+
+    const char *base = title;
+    for (const char *p = title; *p; p++)
+        if (*p == '/') base = p + 1;
+
+    size_t i = 0;
+    while (base[i] && base[i] != '.' && i < sizeof(c_title) - 1) {
+        c_title[i] = base[i];
+        i++;
+    }
+    c_title[i] = 0;
+
+    if (!i) {
+        const char *fallback = "SonionOS Console";
+        for (i = 0; fallback[i]; i++) c_title[i] = fallback[i];
+        c_title[i] = 0;
+    }
+
+    dirty = 1;
+    console_flush_now();
+}
 
 static inline void serial_outb(uint16_t p, uint8_t v) {
     __asm__ volatile ("outb %0, %1" : : "a"(v), "Nd"(p));
@@ -194,6 +219,28 @@ void console_render(void) {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /* Draw application title in the host window title bar. */
+    int title_x = c_area_x - 6;
+    int title_y = c_area_y - 34;
+    int title_limit = c_area_w - 54;
+
+    for (int n = 0; c_title[n] && (n * 7 + 5) <= title_limit; n++) {
+        unsigned char ch = (unsigned char)c_title[n];
+        if (ch < 32 || ch > 126) ch = '?';
+
+        for (int gx = 0; gx < 5; gx++) {
+            uint8_t bits = cfont[ch - 32][gx];
+            for (int gy = 0; gy < 7; gy++) {
+                if (!(bits & (1 << gy))) continue;
+                int px = title_x + n * 7 + gx;
+                int py = title_y + gy;
+                if (px >= 0 && px < (int)c_info->width &&
+                    py >= 0 && py < (int)c_info->height)
+                    c_buf[py * c_info->pitch + px] = 0x00E2E8F0;
             }
         }
     }

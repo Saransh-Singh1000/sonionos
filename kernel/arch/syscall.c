@@ -199,8 +199,13 @@ uint64_t syscall_dispatch(SyscallFrame *f, uint64_t num) {
             }
             return 0;
         }
-        case SYS_EXEC:
-            return (uint64_t)(int64_t)ring3_exec_child((const char *)a1);
+        case SYS_EXEC: {
+            const char *path = (const char *)a1;
+            console_set_title(path);
+            int rc = ring3_exec_child(path);
+            console_set_title("SonionOS Console");
+            return (uint64_t)(int64_t)rc;
+        }
         case SYS_BATCH: {
             /* io_uring-style batch: a1 = ptr to uint64_t[count][4] {num,a1,a2,a3}, a2 = count */
             uint64_t (*ops)[4] = (uint64_t (*)[4])a1;

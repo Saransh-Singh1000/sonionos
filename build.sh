@@ -2,17 +2,13 @@
 
 set -e
 
-CC="${CC:-x86_64-w64-mingw32-gcc}"
-LD="${LD:-x86_64-w64-mingw32-ld}"
-OBJCOPY="${OBJCOPY:-x86_64-w64-mingw32-objcopy}"
+CC="${CC:-clang}"
+LD="${LD:-ld.lld}"
+OBJCOPY="${OBJCOPY:-llvm-objcopy}"
 
-if ! command -v "$CC" >/dev/null 2>&1; then
-    CC="gcc"
-    LD="ld"
-    OBJCOPY="objcopy"
-fi
-
-for tool in "$CC" "$LD" "$OBJCOPY" python3; do
+TARGET_WIN="--target=x86_64-w64-windows-gnu"
+TARGET_ELF="--target=x86_64-unknown-elf"
+for tool in "$CC" "$LD" "$OBJCOPY" nasm python3; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "[ERROR] $tool not found!"
         exit 1
@@ -68,7 +64,7 @@ USRCS=(
 
 echo "=== [1/4] Compiling Ring 3 User-Mode INIT.BIN ==="
 
-"$CC" "${UFLAGS[@]}" \
+"$CC" $TARGET_WIN -fuse-ld=lld "${UFLAGS[@]}" \
     "${USRCS[@]}" \
     user/lua/*.c \
     -nostdlib \
@@ -82,6 +78,8 @@ KSRCS=(
     kernel/sched.c
     kernel/gfx.c
     kernel/desktop.c
+    kernel/wallpaper.c
+    kernel/icons.c
     kernel/panic.c
     kernel/console.c
     kernel/arch/gdt.c
@@ -91,6 +89,7 @@ KSRCS=(
     kernel/libc/memory.c
     kernel/libc/setjmp.c
     kernel/libc/time.c
+    kernel/drivers/acpi.c
     kernel/drivers/blockdev.c
     kernel/drivers/pci.c
     kernel/drivers/nvme.c
@@ -102,7 +101,7 @@ KSRCS=(
 
 echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 
-"$CC" -O3 -ffast-math \
+"$CC" $TARGET_WIN -fuse-ld=lld -O3 -ffast-math \
     -ffreestanding \
     -fno-stack-protector \
     -mno-stack-arg-probe \
@@ -121,27 +120,25 @@ echo "=== [3/4] Compiling Thin Ring 0 Kernel (BIOS) ==="
 
 if command -v nasm >/dev/null 2>&1; then
     nasm -f bin boot/bios/boot.asm -o build/bios_boot.bin
-    nasm -f win64 boot/bios/entry64.asm -o build/entry64.o
+    nasm -f elf64 boot/bios/entry64.asm -o build/entry64.o
 
     for src in boot/bios/bios_hal.c "${KSRCS[@]}"; do
         name=$(basename "$src" .c)
-        "$CC" -O3 -ffast-math \
+        "$CC" $TARGET_ELF -O3 -ffast-math \
             -ffreestanding \
             -fno-stack-protector \
-            -mno-stack-arg-probe \
             -fno-asynchronous-unwind-tables \
             -fno-unwind-tables \
             -mno-red-zone \
             -mno-avx \
-            -fno-tree-loop-distribute-patterns \
             -Ikernel/include \
             -Ikernel/include/libc \
             -c "$src" \
             -o "build/$name.o"
     done
 
-    "$LD" --disable-dynamicbase --image-base 0x10000 \
-        -T boot/bios/bios.ld \
+    "$LD" -m elf_x86_64 \
+        --script=boot/bios/bios.ld \
         -o build/bios_kernel.elf \
         build/entry64.o \
         build/bios_hal.o \
@@ -158,6 +155,7 @@ if command -v nasm >/dev/null 2>&1; then
         build/memory.o \
         build/setjmp.o \
         build/time.o \
+        build/acpi.o \
         build/blockdev.o \
         build/pci.o \
         build/nvme.o \

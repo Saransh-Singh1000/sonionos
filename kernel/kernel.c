@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "bootinfo.h"
+#include "drivers/acpi.h"
 #include "pat.h"
 #include "arch/gdt.h"
 #include "arch/paging.h"
@@ -38,6 +39,11 @@ void kernel_main(BootInfo *info) {
     g_info = info;
     gdt_init();
     panic_init(info);
+    /* Read ACPI tables before replacing the boot page tables. */
+    if (info && info->acpi_rsdp) {
+        if (acpi_init(info->acpi_rsdp) == 0)
+            (void)acpi_find_table("FACP");
+    }
     paging_init(info);
     syscall_init(info);
     enable_write_combining((uintptr_t)info->framebuffer, (uint64_t)info->pitch * info->height * 4);
