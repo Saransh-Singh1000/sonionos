@@ -1,0 +1,1670 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+      - "/bin/"
+      - "/usr/bin/"
+      - "/usr/local/bin/"
+    found: "/data/data/com.termux/files/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineSystem.cmake:207 (message)"
+      - "CMakeLists.txt:9 (project)"
+    message: |
+      The target system is: Generic -  - x86_64
+      The host system is: Android - 34 - aarch64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeNinjaFindMake.cmake:5 (find_program)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_MAKE_PROGRAM"
+    description: "Program used to build from build.ninja files."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ninja-build"
+      - "ninja"
+      - "samu"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/ninja-build"
+    found: "/data/data/com.termux/files/usr/bin/ninja"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompiler.cmake:115 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:67 (_cmake_find_compiler_path)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_C_COMPILER_WITH_PATH"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "clang"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/clang"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:468 (find_file)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:506 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:122 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCCompilerId.c.in"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/"
+    found: "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeCCompilerId.c.in"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:122 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:9 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /data/data/com.termux/files/usr/bin/clang 
+      Build flags: 
+      Id flags: -c;--target=x86_64-w64-windows-gnu 
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+      
+      The C compiler identification is Clang, found in:
+        /data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/4.3.4/CompilerIdC/CMakeCCompilerId.o
+      
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_AR"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-ar"
+      - "ar"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-ar"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_RANLIB"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-ranlib"
+      - "ranlib"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_STRIP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-strip"
+      - "strip"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-strip"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_LINKER"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ld.lld"
+      - "ld"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/ld.lld"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_NM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-nm"
+      - "nm"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-nm"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJDUMP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-objdump"
+      - "objdump"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-objdump"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJCOPY"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-objcopy"
+      - "objcopy"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-objcopy"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_READELF"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-readelf"
+      - "readelf"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-readelf"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_DLLTOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-dlltool"
+      - "dlltool"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-dlltool"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_ADDR2LINE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-addr2line"
+      - "addr2line"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    found: "/data/data/com.termux/files/usr/bin/llvm-addr2line"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:200 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_TAPI"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "tapi"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/tapi"
+      - "/product/bin/tapi"
+      - "/apex/com.android.runtime/bin/tapi"
+      - "/apex/com.android.art/bin/tapi"
+      - "/system_ext/bin/tapi"
+      - "/system/bin/tapi"
+      - "/system/xbin/tapi"
+      - "/odm/bin/tapi"
+      - "/vendor/bin/tapi"
+      - "/vendor/xbin/tapi"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/Compiler/Clang-FindBinUtils.cmake:26 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:201 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_C_COMPILER_AR"
+    description: "LLVM archiver"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-ar-21.1"
+      - "llvm-ar-21"
+      - "llvm-ar21"
+      - "llvm-ar"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/llvm-ar-21.1"
+      - "/product/bin/llvm-ar-21.1"
+      - "/apex/com.android.runtime/bin/llvm-ar-21.1"
+      - "/apex/com.android.art/bin/llvm-ar-21.1"
+      - "/system_ext/bin/llvm-ar-21.1"
+      - "/system/bin/llvm-ar-21.1"
+      - "/system/xbin/llvm-ar-21.1"
+      - "/odm/bin/llvm-ar-21.1"
+      - "/vendor/bin/llvm-ar-21.1"
+      - "/vendor/xbin/llvm-ar-21.1"
+      - "/data/data/com.termux/files/usr/bin/llvm-ar-21"
+      - "/product/bin/llvm-ar-21"
+      - "/apex/com.android.runtime/bin/llvm-ar-21"
+      - "/apex/com.android.art/bin/llvm-ar-21"
+      - "/system_ext/bin/llvm-ar-21"
+      - "/system/bin/llvm-ar-21"
+      - "/system/xbin/llvm-ar-21"
+      - "/odm/bin/llvm-ar-21"
+      - "/vendor/bin/llvm-ar-21"
+      - "/vendor/xbin/llvm-ar-21"
+      - "/data/data/com.termux/files/usr/bin/llvm-ar21"
+      - "/product/bin/llvm-ar21"
+      - "/apex/com.android.runtime/bin/llvm-ar21"
+      - "/apex/com.android.art/bin/llvm-ar21"
+      - "/system_ext/bin/llvm-ar21"
+      - "/system/bin/llvm-ar21"
+      - "/system/xbin/llvm-ar21"
+      - "/odm/bin/llvm-ar21"
+      - "/vendor/bin/llvm-ar21"
+      - "/vendor/xbin/llvm-ar21"
+    found: "/data/data/com.termux/files/usr/bin/llvm-ar"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/Compiler/Clang-FindBinUtils.cmake:38 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:201 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_C_COMPILER_RANLIB"
+    description: "Generate index for LLVM archive"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "llvm-ranlib-21.1"
+      - "llvm-ranlib-21"
+      - "llvm-ranlib21"
+      - "llvm-ranlib"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/llvm-ranlib-21.1"
+      - "/product/bin/llvm-ranlib-21.1"
+      - "/apex/com.android.runtime/bin/llvm-ranlib-21.1"
+      - "/apex/com.android.art/bin/llvm-ranlib-21.1"
+      - "/system_ext/bin/llvm-ranlib-21.1"
+      - "/system/bin/llvm-ranlib-21.1"
+      - "/system/xbin/llvm-ranlib-21.1"
+      - "/odm/bin/llvm-ranlib-21.1"
+      - "/vendor/bin/llvm-ranlib-21.1"
+      - "/vendor/xbin/llvm-ranlib-21.1"
+      - "/data/data/com.termux/files/usr/bin/llvm-ranlib-21"
+      - "/product/bin/llvm-ranlib-21"
+      - "/apex/com.android.runtime/bin/llvm-ranlib-21"
+      - "/apex/com.android.art/bin/llvm-ranlib-21"
+      - "/system_ext/bin/llvm-ranlib-21"
+      - "/system/bin/llvm-ranlib-21"
+      - "/system/xbin/llvm-ranlib-21"
+      - "/odm/bin/llvm-ranlib-21"
+      - "/vendor/bin/llvm-ranlib-21"
+      - "/vendor/xbin/llvm-ranlib-21"
+      - "/data/data/com.termux/files/usr/bin/llvm-ranlib21"
+      - "/product/bin/llvm-ranlib21"
+      - "/apex/com.android.runtime/bin/llvm-ranlib21"
+      - "/apex/com.android.art/bin/llvm-ranlib21"
+      - "/system_ext/bin/llvm-ranlib21"
+      - "/system/bin/llvm-ranlib21"
+      - "/system/xbin/llvm-ranlib21"
+      - "/odm/bin/llvm-ranlib21"
+      - "/vendor/bin/llvm-ranlib21"
+      - "/vendor/xbin/llvm-ranlib21"
+    found: "/data/data/com.termux/files/usr/bin/llvm-ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/Compiler/Clang-FindBinUtils.cmake:50 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCCompiler.cmake:201 (include)"
+      - "CMakeLists.txt:9 (project)"
+    mode: "program"
+    variable: "CMAKE_C_COMPILER_CLANG_SCAN_DEPS"
+    description: "`clang-scan-deps` dependency scanner"
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "clang-scan-deps-21.1"
+      - "clang-scan-deps-21"
+      - "clang-scan-deps21"
+      - "clang-scan-deps"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/"
+      - "/system/bin/"
+      - "/system/xbin/"
+      - "/odm/bin/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/clang-scan-deps-21.1"
+      - "/product/bin/clang-scan-deps-21.1"
+      - "/apex/com.android.runtime/bin/clang-scan-deps-21.1"
+      - "/apex/com.android.art/bin/clang-scan-deps-21.1"
+      - "/system_ext/bin/clang-scan-deps-21.1"
+      - "/system/bin/clang-scan-deps-21.1"
+      - "/system/xbin/clang-scan-deps-21.1"
+      - "/odm/bin/clang-scan-deps-21.1"
+      - "/vendor/bin/clang-scan-deps-21.1"
+      - "/vendor/xbin/clang-scan-deps-21.1"
+      - "/data/data/com.termux/files/usr/bin/clang-scan-deps-21"
+      - "/product/bin/clang-scan-deps-21"
+      - "/apex/com.android.runtime/bin/clang-scan-deps-21"
+      - "/apex/com.android.art/bin/clang-scan-deps-21"
+      - "/system_ext/bin/clang-scan-deps-21"
+      - "/system/bin/clang-scan-deps-21"
+      - "/system/xbin/clang-scan-deps-21"
+      - "/odm/bin/clang-scan-deps-21"
+      - "/vendor/bin/clang-scan-deps-21"
+      - "/vendor/xbin/clang-scan-deps-21"
+      - "/data/data/com.termux/files/usr/bin/clang-scan-deps21"
+      - "/product/bin/clang-scan-deps21"
+      - "/apex/com.android.runtime/bin/clang-scan-deps21"
+      - "/apex/com.android.art/bin/clang-scan-deps21"
+      - "/system_ext/bin/clang-scan-deps21"
+      - "/system/bin/clang-scan-deps21"
+      - "/system/xbin/clang-scan-deps21"
+      - "/odm/bin/clang-scan-deps21"
+      - "/vendor/bin/clang-scan-deps21"
+      - "/vendor/xbin/clang-scan-deps21"
+    found: "/data/data/com.termux/files/usr/bin/clang-scan-deps"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:9 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp"
+      binary: "/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp"
+    cmakeVariables:
+      CMAKE_C_COMPILER_TARGET: "x86_64-w64-windows-gnu"
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp'
+        
+        Run Build Command(s): /data/data/com.termux/files/usr/bin/ninja -v cmTC_2ee7c
+        [1/2] /data/data/com.termux/files/usr/bin/clang --target=x86_64-w64-windows-gnu   -v -MD -MT CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -MF CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj.d -o CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -c /data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeCCompilerABI.c
+        clang version 21.1.8
+        Target: x86_64-w64-windows-gnu
+        Thread model: posix
+        InstalledDir: /data/data/com.termux/files/usr/bin
+         (in-process)
+         "/data/data/com.termux/files/usr/bin/clang" -cc1 -triple x86_64-w64-windows-gnu -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -mms-bitfields -funwind-tables=2 -fno-sized-deallocation -fno-use-init-array -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp -v -fcoverage-compilation-dir=/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp -resource-dir /data/data/com.termux/files/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj.d -MT CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -sys-header-deps -isysroot /data/data/com.termux/files/usr/bin/../.. -internal-isystem /data/data/com.termux/files/usr/lib/clang/21/include -internal-isystem /data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/include -internal-isystem /data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/usr/include -internal-isystem /data/data/com.termux/files/usr/bin/../../include -ferror-limit 19 -fno-use-cxa-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -exception-model=seh -faddrsig -o CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -x c /data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeCCompilerABI.c
+        clang -cc1 version 21.1.8 based upon LLVM 21.1.8 default target aarch64-unknown-linux-android30
+        ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/include"
+        ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/usr/include"
+        ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /data/data/com.termux/files/usr/lib/clang/21/include
+        End of search list.
+        [2/2] : && /data/data/com.termux/files/usr/bin/cmake -E rm -f libcmTC_2ee7c.a && /data/data/com.termux/files/usr/bin/llvm-ar qc libcmTC_2ee7c.a  CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj && /data/data/com.termux/files/usr/bin/llvm-ranlib libcmTC_2ee7c.a && :
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerABI.cmake:217 (message)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:9 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/data/data/com.termux/files/usr/lib/clang/21/include]
+        end of search list found
+        collapse include dir [/data/data/com.termux/files/usr/lib/clang/21/include] ==> [/data/data/com.termux/files/usr/lib/clang/21/include]
+        implicit include dirs: [/data/data/com.termux/files/usr/lib/clang/21/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeDetermineCompilerABI.cmake:253 (message)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:9 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
+        ignore line: [Change Dir: '/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp']
+        ignore line: []
+        ignore line: [Run Build Command(s): /data/data/com.termux/files/usr/bin/ninja -v cmTC_2ee7c]
+        ignore line: [[1/2] /data/data/com.termux/files/usr/bin/clang --target=x86_64-w64-windows-gnu   -v -MD -MT CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -MF CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj.d -o CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -c /data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang version 21.1.8]
+        ignore line: [Target: x86_64-w64-windows-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /data/data/com.termux/files/usr/bin]
+        ignore line: [ (in-process)]
+        ignore line: [ "/data/data/com.termux/files/usr/bin/clang" -cc1 -triple x86_64-w64-windows-gnu -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -mms-bitfields -funwind-tables=2 -fno-sized-deallocation -fno-use-init-array -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp -v -fcoverage-compilation-dir=/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/CMakeScratch/TryCompile-Gx97Jp -resource-dir /data/data/com.termux/files/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj.d -MT CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -sys-header-deps -isysroot /data/data/com.termux/files/usr/bin/../.. -internal-isystem /data/data/com.termux/files/usr/lib/clang/21/include -internal-isystem /data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/include -internal-isystem /data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/usr/include -internal-isystem /data/data/com.termux/files/usr/bin/../../include -ferror-limit 19 -fno-use-cxa-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -exception-model=seh -faddrsig -o CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj -x c /data/data/com.termux/files/usr/share/cmake-4.3/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang -cc1 version 21.1.8 based upon LLVM 21.1.8 default target aarch64-unknown-linux-android30]
+        ignore line: [ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/include"]
+        ignore line: [ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../x86_64-w64-mingw32/usr/include"]
+        ignore line: [ignoring nonexistent directory "/data/data/com.termux/files/usr/bin/../../include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /data/data/com.termux/files/usr/lib/clang/21/include]
+        ignore line: [End of search list.]
+        ignore line: [[2/2] : && /data/data/com.termux/files/usr/bin/cmake -E rm -f libcmTC_2ee7c.a && /data/data/com.termux/files/usr/bin/llvm-ar qc libcmTC_2ee7c.a  CMakeFiles/cmTC_2ee7c.dir/CMakeCCompilerABI.c.obj && /data/data/com.termux/files/usr/bin/llvm-ranlib libcmTC_2ee7c.a && :]
+        ignore line: []
+        ignore line: []
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+...
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/FindPython/Support.cmake:2181 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/FindPython3.cmake:671 (include)"
+      - "CMakeLists.txt:104 (find_package)"
+    mode: "program"
+    variable: "_Python3_EXECUTABLE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: false
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "python3.15mu"
+      - "python3.15m"
+      - "python3.15u"
+      - "python3.15"
+      - "python3.15dmu"
+      - "python3.15dm"
+      - "python3.15du"
+      - "python3.15d"
+      - "python3.14mu"
+      - "python3.14m"
+      - "python3.14u"
+      - "python3.14"
+      - "python3.14dmu"
+      - "python3.14dm"
+      - "python3.14du"
+      - "python3.14d"
+      - "python3.13mu"
+      - "python3.13m"
+      - "python3.13u"
+      - "python3.13"
+      - "python3.13dmu"
+      - "python3.13dm"
+      - "python3.13du"
+      - "python3.13d"
+      - "python3.12mu"
+      - "python3.12m"
+      - "python3.12u"
+      - "python3.12"
+      - "python3.12dmu"
+      - "python3.12dm"
+      - "python3.12du"
+      - "python3.12d"
+      - "python3.11mu"
+      - "python3.11m"
+      - "python3.11u"
+      - "python3.11"
+      - "python3.11dmu"
+      - "python3.11dm"
+      - "python3.11du"
+      - "python3.11d"
+      - "python3.10mu"
+      - "python3.10m"
+      - "python3.10u"
+      - "python3.10"
+      - "python3.10dmu"
+      - "python3.10dm"
+      - "python3.10du"
+      - "python3.10d"
+      - "python3.9mu"
+      - "python3.9m"
+      - "python3.9u"
+      - "python3.9"
+      - "python3.9dmu"
+      - "python3.9dm"
+      - "python3.9du"
+      - "python3.9d"
+      - "python3.8mu"
+      - "python3.8m"
+      - "python3.8u"
+      - "python3.8"
+      - "python3.8dmu"
+      - "python3.8dm"
+      - "python3.8du"
+      - "python3.8d"
+      - "python3.7mu"
+      - "python3.7m"
+      - "python3.7u"
+      - "python3.7"
+      - "python3.7dmu"
+      - "python3.7dm"
+      - "python3.7du"
+      - "python3.7d"
+      - "python3.6mu"
+      - "python3.6m"
+      - "python3.6u"
+      - "python3.6"
+      - "python3.6dmu"
+      - "python3.6dm"
+      - "python3.6du"
+      - "python3.6d"
+      - "python3.5mu"
+      - "python3.5m"
+      - "python3.5u"
+      - "python3.5"
+      - "python3.5dmu"
+      - "python3.5dm"
+      - "python3.5du"
+      - "python3.5d"
+      - "python3.4mu"
+      - "python3.4m"
+      - "python3.4u"
+      - "python3.4"
+      - "python3.4dmu"
+      - "python3.4dm"
+      - "python3.4du"
+      - "python3.4d"
+      - "python3.3mu"
+      - "python3.3m"
+      - "python3.3u"
+      - "python3.3"
+      - "python3.3dmu"
+      - "python3.3dm"
+      - "python3.3du"
+      - "python3.3d"
+      - "python3.2mu"
+      - "python3.2m"
+      - "python3.2u"
+      - "python3.2"
+      - "python3.2dmu"
+      - "python3.2dm"
+      - "python3.2du"
+      - "python3.2d"
+      - "python3.1mu"
+      - "python3.1m"
+      - "python3.1u"
+      - "python3.1"
+      - "python3.1dmu"
+      - "python3.1dm"
+      - "python3.1du"
+      - "python3.1d"
+      - "python3.0mu"
+      - "python3.0m"
+      - "python3.0u"
+      - "python3.0"
+      - "python3.0dmu"
+      - "python3.0dm"
+      - "python3.0du"
+      - "python3.0d"
+      - "python3"
+      - "python"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PROGRAM_PATH:
+        - "/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/FindPython/Support.cmake:2193 (find_program)"
+      - "/data/data/com.termux/files/usr/share/cmake-4.3/Modules/FindPython3.cmake:671 (include)"
+      - "CMakeLists.txt:104 (find_package)"
+    mode: "program"
+    variable: "_Python3_EXECUTABLE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "NEVER"
+      SearchAppBundle: "NEVER"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "python3.15mu"
+      - "python3.15m"
+      - "python3.15u"
+      - "python3.15"
+      - "python3.15dmu"
+      - "python3.15dm"
+      - "python3.15du"
+      - "python3.15d"
+      - "python3.14mu"
+      - "python3.14m"
+      - "python3.14u"
+      - "python3.14"
+      - "python3.14dmu"
+      - "python3.14dm"
+      - "python3.14du"
+      - "python3.14d"
+      - "python3.13mu"
+      - "python3.13m"
+      - "python3.13u"
+      - "python3.13"
+      - "python3.13dmu"
+      - "python3.13dm"
+      - "python3.13du"
+      - "python3.13d"
+      - "python3.12mu"
+      - "python3.12m"
+      - "python3.12u"
+      - "python3.12"
+      - "python3.12dmu"
+      - "python3.12dm"
+      - "python3.12du"
+      - "python3.12d"
+      - "python3.11mu"
+      - "python3.11m"
+      - "python3.11u"
+      - "python3.11"
+      - "python3.11dmu"
+      - "python3.11dm"
+      - "python3.11du"
+      - "python3.11d"
+      - "python3.10mu"
+      - "python3.10m"
+      - "python3.10u"
+      - "python3.10"
+      - "python3.10dmu"
+      - "python3.10dm"
+      - "python3.10du"
+      - "python3.10d"
+      - "python3.9mu"
+      - "python3.9m"
+      - "python3.9u"
+      - "python3.9"
+      - "python3.9dmu"
+      - "python3.9dm"
+      - "python3.9du"
+      - "python3.9d"
+      - "python3.8mu"
+      - "python3.8m"
+      - "python3.8u"
+      - "python3.8"
+      - "python3.8dmu"
+      - "python3.8dm"
+      - "python3.8du"
+      - "python3.8d"
+      - "python3.7mu"
+      - "python3.7m"
+      - "python3.7u"
+      - "python3.7"
+      - "python3.7dmu"
+      - "python3.7dm"
+      - "python3.7du"
+      - "python3.7d"
+      - "python3.6mu"
+      - "python3.6m"
+      - "python3.6u"
+      - "python3.6"
+      - "python3.6dmu"
+      - "python3.6dm"
+      - "python3.6du"
+      - "python3.6d"
+      - "python3.5mu"
+      - "python3.5m"
+      - "python3.5u"
+      - "python3.5"
+      - "python3.5dmu"
+      - "python3.5dm"
+      - "python3.5du"
+      - "python3.5d"
+      - "python3.4mu"
+      - "python3.4m"
+      - "python3.4u"
+      - "python3.4"
+      - "python3.4dmu"
+      - "python3.4dm"
+      - "python3.4du"
+      - "python3.4d"
+      - "python3.3mu"
+      - "python3.3m"
+      - "python3.3u"
+      - "python3.3"
+      - "python3.3dmu"
+      - "python3.3dm"
+      - "python3.3du"
+      - "python3.3d"
+      - "python3.2mu"
+      - "python3.2m"
+      - "python3.2u"
+      - "python3.2"
+      - "python3.2dmu"
+      - "python3.2dm"
+      - "python3.2du"
+      - "python3.2d"
+      - "python3.1mu"
+      - "python3.1m"
+      - "python3.1u"
+      - "python3.1"
+      - "python3.1dmu"
+      - "python3.1dm"
+      - "python3.1du"
+      - "python3.1d"
+      - "python3.0mu"
+      - "python3.0m"
+      - "python3.0u"
+      - "python3.0"
+      - "python3.0dmu"
+      - "python3.0dm"
+      - "python3.0du"
+      - "python3.0d"
+      - "python3"
+      - "python"
+    candidate_directories:
+      - "/data/data/com.termux/files/usr/bin/bin/"
+      - "/data/data/com.termux/files/usr/bin/Scripts/"
+      - "/data/data/com.termux/files/usr/bin/"
+      - "/product/bin/bin/"
+      - "/product/bin/Scripts/"
+      - "/product/bin/"
+      - "/apex/com.android.runtime/bin/bin/"
+      - "/apex/com.android.runtime/bin/Scripts/"
+      - "/apex/com.android.runtime/bin/"
+      - "/apex/com.android.art/bin/bin/"
+      - "/apex/com.android.art/bin/Scripts/"
+      - "/apex/com.android.art/bin/"
+      - "/system_ext/bin/bin/"
+      - "/system_ext/bin/Scripts/"
+      - "/system_ext/bin/"
+      - "/system/bin/bin/"
+      - "/system/bin/Scripts/"
+      - "/system/bin/"
+      - "/system/xbin/bin/"
+      - "/system/xbin/Scripts/"
+      - "/system/xbin/"
+      - "/odm/bin/bin/"
+      - "/odm/bin/Scripts/"
+      - "/odm/bin/"
+      - "/vendor/bin/bin/"
+      - "/vendor/bin/Scripts/"
+      - "/vendor/bin/"
+      - "/vendor/xbin/bin/"
+      - "/vendor/xbin/Scripts/"
+      - "/vendor/xbin/"
+      - "/bin/bin/"
+      - "/bin/Scripts/"
+      - "/bin/"
+    searched_directories:
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.15d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.14d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.13d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.12d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.11d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.10d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.9d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.8d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.7d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.6d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.5d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.4d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.3d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.2d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.1d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0mu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0m"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0u"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0dmu"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0dm"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0du"
+      - "/data/data/com.termux/files/usr/bin/bin/python3.0d"
+      - "/data/data/com.termux/files/usr/bin/bin/python3"
+      - "/data/data/com.termux/files/usr/bin/bin/python"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.15d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.14d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.13d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.12d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.11d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.10d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.9d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.8d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.7d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.6d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.5d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.4d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.3d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.2d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.1d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0mu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0m"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0u"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0dmu"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0dm"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0du"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3.0d"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python3"
+      - "/data/data/com.termux/files/usr/bin/Scripts/python"
+      - "/data/data/com.termux/files/usr/bin/python3.15mu"
+      - "/data/data/com.termux/files/usr/bin/python3.15m"
+      - "/data/data/com.termux/files/usr/bin/python3.15u"
+      - "/data/data/com.termux/files/usr/bin/python3.15"
+      - "/data/data/com.termux/files/usr/bin/python3.15dmu"
+      - "/data/data/com.termux/files/usr/bin/python3.15dm"
+      - "/data/data/com.termux/files/usr/bin/python3.15du"
+      - "/data/data/com.termux/files/usr/bin/python3.15d"
+      - "/data/data/com.termux/files/usr/bin/python3.14mu"
+      - "/data/data/com.termux/files/usr/bin/python3.14m"
+      - "/data/data/com.termux/files/usr/bin/python3.14u"
+      - "/data/data/com.termux/files/usr/bin/python3.14"
+      - "/data/data/com.termux/files/usr/bin/python3.14dmu"
+      - "/data/data/com.termux/files/usr/bin/python3.14dm"
+      - "/data/data/com.termux/files/usr/bin/python3.14du"
+      - "/data/data/com.termux/files/usr/bin/python3.14d"
+      - "/data/data/com.termux/files/usr/bin/python3.13mu"
+      - "/data/data/com.termux/files/usr/bin/python3.13m"
+      - "/data/data/com.termux/files/usr/bin/python3.13u"
+    found: "/data/data/com.termux/files/usr/bin/python3.13"
+    search_context:
+      ENV{PATH}:
+        - "/data/data/com.termux/files/usr/bin"
+        - "/product/bin"
+        - "/apex/com.android.runtime/bin"
+        - "/apex/com.android.art/bin"
+        - "/system_ext/bin"
+        - "/system/bin"
+        - "/system/xbin"
+        - "/odm/bin"
+        - "/vendor/bin"
+        - "/vendor/xbin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PROGRAM_PATH:
+        - "/bin"
+...

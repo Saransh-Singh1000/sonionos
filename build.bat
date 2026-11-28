@@ -42,35 +42,9 @@ if errorlevel 1 goto :error
 python scripts\sign_efi.py
 if errorlevel 1 goto :error
 
-echo === [3/4] Compiling Thin Ring 0 Kernel (BIOS) ===
-where nasm >nul 2>nul
-if %errorlevel%==0 (
-    nasm -f bin boot\bios\boot.asm -o build\bios_boot.bin
-    if errorlevel 1 goto :error
-    nasm -f win64 boot\bios\entry64.asm -o build\entry64.o
-    if errorlevel 1 goto :error
-
-    for %%f in (boot\bios\bios_hal.c %KSRCS%) do (
-        gcc -O3 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -fno-asynchronous-unwind-tables -fno-unwind-tables -mno-red-zone -mno-avx -fno-tree-loop-distribute-patterns -DSONION_KERNEL -Ikernel\include -Ilib\include -Ikernel\include\libc -c %%f -o build\%%~nf.o
-        if errorlevel 1 goto :error
-    )
-
-    ld --disable-dynamicbase --image-base 0x10000 -T boot\bios\bios.ld -o build\bios_kernel.elf build\entry64.o build\bios_hal.o build\acpi.o build\gdt.o build\paging.o build\syscall.o build\ahci.o build\ata.o build\blockdev.o build\nvme.o build\pci.o build\audio.o build\usb_msc.o build\fat32.o build\memory.o build\img.o build\setjmp.o build\string.o build\time.o build\console.o build\splash.o build\kernel.o build\sched.o build\kbd_events.o build\panic.o
-    if errorlevel 1 goto :error
-
-    python scripts\build_flat.py
-    if errorlevel 1 goto :error
-
-    copy /b build\bios_boot.bin + build\bios_kernel.bin build\sonionos_bios.img >nul
-    fsutil file seteof build\sonionos_bios.img 2097152 >nul
-    echo [OK] Built Ring 3 User Space + Thin Ring 0 Kernels!
-) else (
-    echo [SKIP] NASM not found!
-)
-
 echo === [4/4] Launching QEMU ===
 set QEMU="C:\Program Files\qemu\qemu-system-x86_64.exe"
-set BIOS_FD="C:\Program Files\qemu\share\edk2-x86_64-code.fd"
+set OVMF_CODE="C:\Program Files\qemu\share\edk2-x86_64-code.fd"
 
 if /i "%1"=="iso" (
     python scripts\make_iso.py
@@ -78,11 +52,7 @@ if /i "%1"=="iso" (
     echo [READY] Share build\sonionOS.iso with your friend!
     goto :eof
 )
-if /i "%1"=="bios" (
-    %QEMU% -cpu max -m 512M -device AC97 -drive file=build\sonionos_bios.img,format=raw,if=ide,index=0 -drive file=fat:rw:disk,format=raw,if=ide,index=1 -display sdl,grab-mod=lctrl-lalt -serial none
-) else (
-    %QEMU% -cpu max -m 512M -device AC97 -drive if=pflash,format=raw,readonly=on,file=%BIOS_FD% -drive file=fat:rw:disk,format=raw -display sdl,grab-mod=lctrl-lalt -serial none
-)
+%QEMU% -cpu max -m 512M -device AC97 -drive if=pflash,format=raw,readonly=on,file=%OVMF_CODE% -drive file=fat:rw:disk,format=raw -display sdl,grab-mod=lctrl-lalt -serial none
 goto :eof
 
 :error

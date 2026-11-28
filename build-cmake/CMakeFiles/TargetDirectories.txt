@@ -1,0 +1,7 @@
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/sonion_uefi.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/sonion_init.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/sonion_desktop.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/sonionos.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/test.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/edit_cache.dir
+/data/data/com.termux/files/home/sonionos/build-cmake/CMakeFiles/rebuild_cache.dir

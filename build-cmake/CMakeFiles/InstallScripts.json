@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/data/com.termux/files/home/sonionos/build-cmake/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
