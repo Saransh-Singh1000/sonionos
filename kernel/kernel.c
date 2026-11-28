@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "drivers/audio.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -10,14 +10,12 @@
 #include "arch/syscall.h"
 #include "panic.h"
 #include "console.h"
-#include "desktop.h"
+
 #include "splash.h"
 #include "kbd_events.h"
 #include "sched.h"
 #include "blockdev.h"
 #include "fs/fat32.h"
-#include "wallpaper.h"
-#include "icons.h"
 
 static BootInfo *g_info = 0;
 static uint32_t * const backbuf = (uint32_t *)0x00400000ULL;
@@ -54,16 +52,13 @@ void kernel_main(BootInfo *info) {
 
     audio_init();
     boot_splash_show(info, backbuf);
-    desktop_init(info, backbuf);
+    
     sched_init();
     console_init(info, backbuf, 2);
     console_set_flush(swap_buffers);
     block_init(info);
     int fs_ok = fat32_init();
     if (fs_ok) {
-        wallpaper_load("/SYSTEM/WALLPAPER.RGB");
-        icons_init();
-        desktop_refresh();
     }
     console_set_color(0x0000FF00, 0x00090D16);
     console_puts(fs_ok ? "[FS] Mount successful" : "[FS] Mount FAILED");
@@ -80,6 +75,9 @@ void kernel_main(BootInfo *info) {
     (void)rc;
     while (1) info->sleep_ms(100);
 }
+
+
+
 
 
 

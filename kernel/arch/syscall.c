@@ -1,4 +1,4 @@
-#include "audio.h"
+#include "drivers/audio.h"
 #include "kbd_events.h"
 #include <stddef.h>
 extern void kheap_stats(size_t *total_b, size_t *used_b, size_t *free_b, size_t *used_cnt, size_t *free_cnt);
@@ -427,6 +427,7 @@ void ring3_fault_recover(uint64_t exc, uint64_t rip, uint64_t cr2) {
     r3_exit_code[d] = -(int)(128 + exc);
     longjmp(r3_ret_jmp[d], 1);
 }
+
 
 
 

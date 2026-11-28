@@ -64,8 +64,8 @@ UFLAGS=(
     -U_WIN32
     -U_WIN64
     -Iuser
-    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include
-    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc
+    -DSONION_KERNEL -Ikernel/include -Ilib/include
+    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc
 )
 
 USRCS=(
@@ -99,11 +99,7 @@ fi
 KSRCS=(
     kernel/kernel.c
     kernel/sched.c kernel/kbd_events.c
-    kernel/gfx.c
-    kernel/desktop.c
     kernel/splash.c
-    kernel/wallpaper.c
-    kernel/icons.c
     kernel/panic.c
     kernel/console.c
     kernel/arch/gdt.c
@@ -125,6 +121,12 @@ KSRCS=(
 
 python3 scripts/embed_logo.py
 
+if [ -f "user/ui/main.c" ]; then
+    echo "=== [1B/4] Compiling Ring 3 Desktop UI (user/ui/ -> DESKTOP.SON) ==="
+    "$CC" $TARGET_ELF -O2 -ffast-math -ffreestanding -fno-stack-protector -mno-stack-arg-probe -mno-red-zone -fno-asynchronous-unwind-tables -U_WIN32 -U_WIN64 -Iuser/ui -Isdk/include user/ui/*.c sdk/lib/crt0.o sdk/lib/img.o sdk/lib/stdio.o sdk/lib/time.o sdk/lib/memory.o kernel/libc/string.c kernel/libc/stdlib.c kernel/libc/math.c -nostdlib -Wl,--image-base,0x0,-T,sdk/lib/child.ld -o build/desktop.elf
+    "$OBJCOPY" -O binary build/desktop.elf disk/USER/DESKTOP.SON
+fi
+
 echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
 
 "$CC" $TARGET_WIN -fuse-ld=lld -O3 -ffast-math \
@@ -136,8 +138,8 @@ echo "=== [2/4] Compiling Thin Ring 0 Kernel (UEFI) ==="
     -nostdlib \
     -Wl,--subsystem,10 \
     -e efi_main \
-    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include \
-    -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include/libc \
+    -DSONION_KERNEL -Ikernel/include -Ilib/include \
+    -DSONION_KERNEL -Ikernel/include -Ilib/include/libc \
     boot/uefi/main.c \
     "${KSRCS[@]}" \
     -o disk/EFI/BOOT/BOOTX64.EFI
@@ -160,7 +162,7 @@ if command -v nasm >/dev/null 2>&1; then
             -mno-red-zone \
             -mno-avx \
             -fno-tree-loop-distribute-patterns \
-            -DSONION_KERNEL -Ikernel/include -Idrivers/include -Ilib/include \
+            -DSONION_KERNEL -Ikernel/include -Ilib/include \
             -Ikernel/include/libc \
             -c "$src" \
             -o "build/$name.o"
@@ -172,9 +174,7 @@ if command -v nasm >/dev/null 2>&1; then
         build/entry64.o \
         build/bios_hal.o \
         build/kernel.o \
-        build/sched.o build/kbd_events.o \
-        build/gfx.o \
-        build/desktop.o build/splash.o \
+        build/sched.o build/kbd_events.o \ \ build/splash.o \
         build/panic.o \
         build/console.o \
         build/gdt.o \
@@ -192,7 +192,6 @@ if command -v nasm >/dev/null 2>&1; then
         build/ata.o \
         build/usb_msc.o \
         build/fat32.o \
-        build/icons.o
 
     python3 scripts/build_flat.py
     cat build/bios_boot.bin build/bios_kernel.bin > build/sonionos_bios.img

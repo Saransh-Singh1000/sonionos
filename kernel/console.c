@@ -1,5 +1,5 @@
 #include "console.h"
-#include "desktop.h"
+
 #include "string.h"
 
 #define MAX_ROWS 135
@@ -95,8 +95,7 @@ void console_init(BootInfo *info, uint32_t *backbuf, int scale) {
     c_buf   = backbuf ? backbuf : info->framebuffer;
     c_scale = (scale > 0) ? scale : 2;
 
-    desktop_console_bounds(&c_area_x, &c_area_y,
-                           &c_area_w, &c_area_h);
+    c_area_x = 12; c_area_y = 12; c_area_w = (int)c_info->width - 24; c_area_h = (int)c_info->height - 24;
 
     c_cols = c_area_w / (6 * c_scale);
     c_rows = c_area_h / (9 * c_scale);
@@ -170,11 +169,10 @@ void console_puts(const char *s) {
 void console_render(void) {
     if (!c_info || !c_buf) return;
 
-    if (!desktop_console_visible()) return;
+    
 
     /* Follow the window when it moves. */
-    desktop_console_bounds(&c_area_x, &c_area_y,
-                           &c_area_w, &c_area_h);
+    c_area_x = 12; c_area_y = 12; c_area_w = (int)c_info->width - 24; c_area_h = (int)c_info->height - 24;
 
     if (!dirty) return;
     dirty = 0;
@@ -264,13 +262,13 @@ int console_getchar(int blocking) {
     do {
         c_info->poll_input(&in);
 
-        desktop_update(&in);
+        
 
         /* Desktop was redrawn, so redraw the complete text grid. */
         dirty = 1;
         console_render();
 
-        desktop_draw_cursor();
+        
 
         if (c_flush) c_flush();
 
@@ -282,5 +280,6 @@ int console_getchar(int blocking) {
     } while (blocking);
     return -1;
 }
+
 
 

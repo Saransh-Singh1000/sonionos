@@ -128,7 +128,7 @@ typedef struct {
     uint8_t scancode;
     uint8_t pressed; /* 1 = Key-Down, 0 = Key-Up */
     char    ascii;
-    uint8_t reserved;
+    uint8_t modifiers;
 } SonionKeyEvent;
 
 static inline int sys_poll_key(SonionKeyEvent *ev) {
@@ -140,7 +140,20 @@ static inline int sys_audio_write(const void *pcm_48k_stereo, size_t bytes) {
 static inline int sys_audio_info(char *name_buf, size_t max_len) {
     return (int)syscall3(35, 2, (uint64_t)name_buf, (uint64_t)max_len);
 }
+#define KMOD_LSHIFT 0x01
+#define KMOD_RSHIFT 0x02
+#define KMOD_SHIFT  0x03
+#define KMOD_LCTRL  0x04
+#define KMOD_RCTRL  0x08
+#define KMOD_CTRL   0x0C
+#define KMOD_LALT   0x10
+#define KMOD_RALT   0x20
+#define KMOD_ALT    0x30
+#define KMOD_SUPER  0x40
+#define KMOD_CAPS   0x80
+
 #endif
+
 
 
 

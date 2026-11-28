@@ -239,6 +239,8 @@ static void shell_exec(char *cmdline) {
             int rc = sys_exec(t);
             printf("[Child Ring 3 exited: %d]\n", rc);
         }
+    } else if (!strcmp(cmd, "desktop") || !strcmp(cmd, "ui")) {
+        sys_exec("/USER/DESKTOP.SON");
     } else if (!strcmp(cmd, "reboot")) {
         printf("Rebooting...\n"); sys_reboot();
     } else if (!strcmp(cmd, "poweroff") || !strcmp(cmd, "shutdown")) {
@@ -252,11 +254,12 @@ __attribute__((section(".text._start")))
 void _start(void) {
     uint64_t di[8];
     sys_disk_info(di);
-    printf("[USER] Ring 3 Shell + Lua 5.5.1 Active (CPL = %u)\n",
+    printf("[USER] Ring 3 Shell Active (CPL = %u)\n",
            get_current_cpl());
     printf("[DISK] %s | [FS] %s (%s)\n", (char *)(di + 2),
            di[1] ? "MOUNTED" : "NONE", (char *)(di + 4));
-    printf("Type 'help' for commands ('cpl', 'lua hello.lua').\n\n");
+    printf("Type 'help' for commands ('desktop' to launch UI).\n\n");
+    sys_exec("/USER/DESKTOP.SON");
 
     char line[256];
     while (1) {
@@ -266,6 +269,7 @@ void _start(void) {
     }
     sys_exit(0);
 }
+
 
 
 
